@@ -1,0 +1,1335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Stock Tracker</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Stock Tracker">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#002B2B">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%23002B2B'/%3E%3Crect x='40' y='40' width='100' height='100' rx='22' fill='%2358C774'/%3E%3Cpath d='M58 75l32-14 32 14-32 14z M58 75v34l32 14 32-14V75 M90 89v34' fill='none' stroke='%2306301A' stroke-width='7' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one-column phone app. Sticky brand header, scrolling panel, fixed 4-tab bar. Standalone: all data on this phone, Excel file is the backup. */
+:root{
+  --bg:#F2F5F3; --surface:#FFFFFF; --surface-2:#E6EDE9; --ink:#0E2A27; --muted:#5A6F69;
+  --brand:#002B2B; --brand-2:#306154; --brand-ink:#FFFFFF; --accent:#58C774; --accent-ink:#06301A;
+  --line:rgba(0,43,43,.09); --shadow:0 1px 2px rgba(0,43,43,.06),0 6px 18px rgba(0,43,43,.06);
+  --in:#23864A; --in-bg:#DDF3E4; --out:#2563A6; --out-bg:#DFEAF7; --xfer:#9A6212; --xfer-bg:#F6EBD6;
+  --ret:#7A4FA8; --ret-bg:#ECE3F6; --warn:#B4400E; --warn-bg:#FBE7DC; --void:#8A9792;
+  --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r:12px; --r-sm:8px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0A1615; --surface:#11211F; --surface-2:#19302C; --ink:#E4EFEA; --muted:#93AAA3;
+  --brand:#0D2523; --brand-2:#4E8C7B; --brand-ink:#E9F5EF; --accent:#58C774; --accent-ink:#04200F;
+  --line:rgba(200,240,225,.08); --shadow:0 1px 2px rgba(0,0,0,.3);
+  --in:#6FD893; --in-bg:#163A26; --out:#86B6EC; --out-bg:#182C44; --xfer:#E2B467; --xfer-bg:#3A2C14;
+  --ret:#C3A2E6; --ret-bg:#2E2240; --warn:#F39A6B; --warn-bg:#3B2116; --void:#6D7F79; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1615; --surface:#11211F; --surface-2:#19302C; --ink:#E4EFEA; --muted:#93AAA3;
+  --brand:#0D2523; --brand-2:#4E8C7B; --brand-ink:#E9F5EF; --accent:#58C774; --accent-ink:#04200F;
+  --line:rgba(200,240,225,.08); --shadow:0 1px 2px rgba(0,0,0,.3);
+  --in:#6FD893; --in-bg:#163A26; --out:#86B6EC; --out-bg:#182C44; --xfer:#E2B467; --xfer-bg:#3A2C14;
+  --ret:#C3A2E6; --ret-bg:#2E2240; --warn:#F39A6B; --warn-bg:#3B2116; --void:#6D7F79; color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font:16px/1.45 var(--f-body);-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-size:.9em;letter-spacing:.01em}
+.muted{color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--brand);color:var(--brand-ink)}
+.top-in{max-width:640px;margin:0 auto;padding:10px 16px 12px;display:flex;align-items:center;gap:12px}
+.mark{width:34px;height:34px;border-radius:9px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none}
+.mark svg{width:20px;height:20px}
+.top h1{margin:0;font:700 1.2rem/1.1 var(--f-display);letter-spacing:.01em}
+.who{font-size:.8rem;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-txt{min-width:0;flex:1}
+.mode{font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:99px;background:rgba(255,255,255,.12);white-space:nowrap}
+.mode.local{background:rgba(242,154,107,.25)}
+
+main{max-width:640px;margin:0 auto;padding:16px 16px calc(96px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px}
+.panel{display:flex;flex-direction:column;gap:14px}
+h2{margin:0;font:700 1.35rem/1.15 var(--f-display);text-wrap:balance}
+h3{margin:0;font:600 1rem/1.2 var(--f-display);letter-spacing:.01em}
+.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+/* quick actions */
+.quick{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.qa{border:0;border-radius:var(--r);padding:12px 2px 10px;min-width:0;background:var(--surface);box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;gap:6px;font-weight:600;font-size:.82rem}
+.qa i{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-style:normal}
+.qa svg{width:18px;height:18px}
+
+/* type colours */
+.t-receive{--tc:var(--in);--tb:var(--in-bg)} .t-deploy{--tc:var(--out);--tb:var(--out-bg)}
+.t-transfer{--tc:var(--xfer);--tb:var(--xfer-bg)} .t-return,.t-rma{--tc:var(--ret);--tb:var(--ret-bg)}
+.t-recycle{--tc:var(--muted);--tb:var(--surface-2)}
+.qa i,.pill{background:var(--tb);color:var(--tc)}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:99px;white-space:nowrap}
+
+/* summary */
+.summary{display:flex;gap:10px}
+.stat{flex:1;background:var(--surface);border-radius:var(--r);padding:12px 14px;box-shadow:var(--shadow)}
+.stat b{display:block;font:700 1.6rem/1 var(--f-display);font-variant-numeric:tabular-nums}
+.stat span{font-size:.8rem;color:var(--muted)}
+
+/* inputs */
+.search{position:relative}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
+.search input{padding-left:38px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label,.lbl{font-size:.82rem;font-weight:600;color:var(--muted)}
+input[type=text],input[type=search],input[type=number],select,textarea{width:100%;border:0;background:var(--surface);border-radius:var(--r-sm);padding:12px;box-shadow:inset 0 0 0 1px var(--line);min-width:0}
+textarea{resize:vertical;min-height:64px}
+input:focus,select:focus,textarea:focus{outline:none;box-shadow:inset 0 0 0 2px var(--accent)}
+.row{display:flex;gap:8px;align-items:stretch}
+.row>input{flex:1}
+
+.btn{border:0;border-radius:var(--r-sm);padding:12px 16px;font-weight:600;background:var(--surface-2);display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.btn svg{width:18px;height:18px}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.brand{background:var(--brand-2);color:#fff}
+.btn.ghost{background:transparent;color:var(--muted);padding:8px 10px}
+.btn.danger{background:var(--warn-bg);color:var(--warn)}
+.btn.block{width:100%;padding:15px;font-size:1.05rem}
+.btn:disabled{opacity:.5;cursor:default}
+
+/* segmented */
+.seg{display:grid;grid-template-columns:repeat(5,1fr);background:var(--surface-2);border-radius:var(--r);padding:4px;gap:4px}
+.seg button{border:0;background:transparent;border-radius:9px;padding:10px 0;font-weight:600;font-size:.82rem;min-width:0;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--tc);box-shadow:var(--shadow)}
+
+.card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;display:flex;flex-direction:column;gap:14px}
+
+/* serial chips */
+.serials{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border-radius:99px;padding:5px 6px 5px 11px;max-width:100%}
+.chip .mono{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip button{border:0;background:transparent;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:var(--muted);flex:none}
+.chip.bad{background:var(--warn-bg);color:var(--warn)}
+.qty{display:flex;align-items:center;gap:10px}
+.qty button{width:44px;height:44px;border:0;border-radius:var(--r-sm);background:var(--surface-2);font-size:1.3rem;font-weight:600}
+.qty input{width:80px;text-align:center;font-weight:600;font-size:1.1rem}
+.note{font-size:.85rem;border-radius:var(--r-sm);padding:10px 12px}
+.note.warn{background:var(--warn-bg);color:var(--warn)}
+.note.info{background:var(--surface-2);color:var(--muted)}
+.loc{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--void);flex:none}
+.dot.ok{background:var(--in)}
+.dot.wait{background:var(--xfer)}
+
+/* stock list */
+.list{display:flex;flex-direction:column;gap:8px}
+details.sku{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow)}
+details.sku summary{list-style:none;display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer}
+details.sku summary::-webkit-details-marker{display:none}
+.sku-name{flex:1;min-width:0;font-weight:600;line-height:1.25}
+.sku-name small{display:block;font-weight:400;font-size:.78rem;color:var(--muted)}
+.count{font:700 1.4rem/1 var(--f-display);font-variant-numeric:tabular-nums;min-width:2ch;text-align:right}
+.count.zero{color:var(--void)}
+.sku-body{border-top:1px solid var(--line);padding:6px 14px 12px}
+.srow{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.srow:last-child{border-bottom:0}
+.srow .mono{flex:1;min-width:0;overflow-wrap:anywhere}
+.srow small{color:var(--muted);font-size:.75rem;white-space:nowrap}
+.mini{border:0;border-radius:7px;padding:6px 9px;font-size:.78rem;font-weight:600;background:var(--tb);color:var(--tc)}
+
+/* history */
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips button{border:0;flex:none;border-radius:99px;padding:7px 12px;font-size:.85rem;font-weight:600;background:var(--surface);color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+.chips button[aria-pressed="true"]{background:var(--brand-2);color:#fff;box-shadow:none}
+.day{font-size:.75rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:6px 2px -2px}
+.ev{border:0;width:100%;text-align:left;background:var(--surface);border-radius:var(--r);padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:4px 10px;box-shadow:var(--shadow)}
+.ev-main{min-width:0;display:flex;flex-direction:column;gap:3px}
+.ev-title{font-weight:600;line-height:1.25}
+.ev-sub{font-size:.85rem;color:var(--muted);overflow-wrap:anywhere}
+.ev-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px;font-size:.8rem;color:var(--muted)}
+.ev.voided{opacity:.55}
+.ev.voided .ev-title{text-decoration:line-through}
+
+.empty{background:var(--surface);border-radius:var(--r);padding:24px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:var(--shadow)}
+.empty p{margin:0;color:var(--muted);max-width:34ch}
+
+/* tab bar */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);box-shadow:0 -1px 0 var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs-in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:repeat(var(--n,4),1fr)}
+body.readonly [data-act],body.readonly [data-quick],body.readonly #quick{display:none!important}
+.person{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:var(--r);padding:12px 14px;box-shadow:var(--shadow)}
+.person.off{opacity:.6}
+.avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font:700 1rem/1 var(--f-display);color:#fff;background:var(--brand-2);flex:none}
+.person-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.person-main b{font-weight:600;overflow-wrap:anywhere}
+.person-main span{font-size:.82rem;color:var(--muted)}
+.person-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.btn.sm{padding:7px 11px;font-size:.82rem}
+.sync{font-size:.72rem;font-weight:600;color:var(--xfer);white-space:nowrap}
+.sync.bad{color:var(--warn)}
+.hist-head{display:flex;align-items:center;gap:10px}
+.hist-head h2{flex:1}
+.tabs button{border:0;background:transparent;padding:9px 0 10px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.74rem;font-weight:600;color:var(--muted)}
+.tabs svg{width:22px;height:22px}
+.tabs button[aria-selected="true"]{color:var(--ink)}
+.tabs button[aria-selected="true"] svg{color:var(--brand-2)}
+.tabs .log-tab span.ic{width:42px;height:30px;border-radius:99px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+.tabs .log-tab svg{color:var(--accent-ink)!important}
+
+/* sheets */
+.sheet{position:fixed;inset:0;z-index:50;background:rgba(0,20,20,.5);display:flex;align-items:flex-end;justify-content:center}
+.sheet-card{background:var(--bg);width:100%;max-width:640px;max-height:88%;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+.sheet-head{display:flex;align-items:center;gap:10px}
+.sheet-head h2{flex:1}
+.scan-img{width:100%;max-height:220px;object-fit:contain;border-radius:var(--r-sm);background:#000}
+.result{border:0;width:100%;text-align:left;background:var(--surface);border-radius:var(--r-sm);padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow)}
+.result .mono{flex:1;min-width:0;overflow-wrap:anywhere;font-size:1rem}
+.result small{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
+dl.kv{margin:0;display:grid;grid-template-columns:auto 1fr;gap:8px 14px;background:var(--surface);border-radius:var(--r);padding:14px;box-shadow:var(--shadow)}
+dl.kv dt{color:var(--muted);font-size:.85rem}
+dl.kv dd{margin:0;min-width:0;overflow-wrap:anywhere;font-weight:500}
+dl.kv a{color:var(--brand-2);font-weight:600}
+.spinner{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--brand-2);animation:spin .8s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-weight:600;font-size:.9rem;max-width:calc(100% - 32px);box-shadow:var(--shadow)}
+@media (prefers-reduced-motion:reduce){.spinner{animation-duration:3s}}
+@media (max-width:380px){.qa{font-size:.72rem}.seg button{font-size:.74rem}}
+.backup{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:var(--r);padding:12px 14px;box-shadow:var(--shadow)}
+.backup.due{background:var(--warn-bg);color:var(--warn)}
+.backup-txt{flex:1;min-width:0;font-size:.88rem;line-height:1.35}
+.backup-txt b{display:block;font-weight:600}
+</style>
+</head>
+<body>
+<style>
+html,body{min-height:100%}
+body{padding-top:env(safe-area-inset-top,0px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:25;background:var(--brand)}
+.top-in,main,.tabs-in,.sheet-card{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mode.due{background:rgba(242,154,107,.3)}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:.92rem}
+.steps li::marker{color:var(--muted);font-weight:600}
+.file-pick{position:relative;overflow:hidden}
+.file-pick input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.kv-plain{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.92rem}
+.kv-plain dt{color:var(--muted)}
+.kv-plain dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.tabs-in{--n:5}
+.setup{position:fixed;inset:0;z-index:80;background:var(--bg);overflow:auto;display:flex;flex-direction:column}
+.setup-band{background:var(--brand);color:var(--brand-ink);padding-top:calc(28px + env(safe-area-inset-top,0px));padding-bottom:28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.setup-band-in,.setup-body{max-width:520px;margin:0 auto;width:100%}
+.setup-band .mark{width:48px;height:48px;border-radius:13px;margin-bottom:14px}
+.setup-band .mark svg{width:28px;height:28px}
+.setup-band h1{margin:0;font:700 2rem/1.05 var(--f-display)}
+.setup-band p{margin:8px 0 0;opacity:.85;max-width:38ch}
+.setup-body{display:flex;flex-direction:column;gap:14px;padding-top:20px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));box-sizing:border-box}
+.t-count{--tc:var(--brand-2);--tb:var(--surface-2)}
+.count-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.count-stats .stat{padding:10px 12px}
+.count-stats .stat b{font-size:1.4rem}
+.cmp-head{display:flex;align-items:center;gap:10px}
+.cmp-head h3{flex:1}
+details.grp{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow)}
+details.grp summary{list-style:none;display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;font-weight:600}
+details.grp summary::-webkit-details-marker{display:none}
+details.grp summary span.lbl2{flex:1;min-width:0}
+details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:var(--muted)}
+.gcount{font:700 1.3rem/1 var(--f-display);font-variant-numeric:tabular-nums;min-width:2ch;text-align:right}
+.grp.ok .gcount{color:var(--in)} .grp.bad .gcount{color:var(--warn)} .grp.zero .gcount{color:var(--void)}
+.grp-body{border-top:1px solid var(--line);padding:4px 14px 10px}
+.crow{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.crow:last-child{border-bottom:0}
+.crow-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.crow-main .mono{overflow-wrap:anywhere}
+.crow-main small{color:var(--muted);font-size:.78rem;line-height:1.3}
+.crow .x{border:0;background:transparent;color:var(--muted);width:32px;height:32px;border-radius:50%;flex:none}
+/* live scanner */
+.scanner{position:fixed;inset:0;z-index:70;background:#000;display:flex;flex-direction:column;color:#fff}
+.scanner video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.aim{position:absolute;left:8%;right:8%;top:50%;height:22%;transform:translateY(-50%);border:2px solid rgba(255,255,255,.85);border-radius:12px;box-shadow:0 0 0 100vmax rgba(0,0,0,.45);transition:border-color .15s}
+.aim::after{content:"";position:absolute;left:6%;right:6%;top:50%;height:2px;background:#ff5a4e;opacity:.9}
+.aim.hit{border-color:#58C774;border-width:3px}
+.aim.dup{border-color:#F2B05A;border-width:3px}
+.scan-top,.scan-bot{position:relative;z-index:2;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.scan-top{padding-top:calc(12px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:12px}
+.scan-top b{flex:1;font:700 1.15rem/1.2 var(--f-display)}
+.scan-n{font:700 1.8rem/1 var(--f-display);font-variant-numeric:tabular-nums}
+.scan-bot{margin-top:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px}
+.scan-last{background:rgba(0,0,0,.6);border-radius:12px;padding:10px 14px;min-height:46px;display:flex;flex-direction:column;justify-content:center}
+.scan-last .mono{font-size:1.05rem;overflow-wrap:anywhere}
+.scan-last small{opacity:.8;font-size:.8rem}
+.scan-hint{font-size:.85rem;opacity:.85;text-align:center}
+.scanner .btn{background:rgba(255,255,255,.16);color:#fff}
+.scanner .btn.primary{background:#58C774;color:#06301A}
+</style>
+
+<header class="top">
+  <div class="top-in">
+    <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg></div>
+    <div class="top-txt">
+      <h1>Stock Tracker</h1>
+      <div class="who" id="who">Saved on this phone</div>
+    </div>
+    <span class="mode" id="mode">No backup yet</span>
+  </div>
+</header>
+
+<main>
+  <!-- STOCK -->
+  <section class="panel" id="p-stock">
+    <div class="quick" id="quick">
+      <button class="qa t-receive" data-quick="receive"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 4v12M6 10l6 6 6-6M5 20h14"/></svg></i>Receive</button>
+      <button class="qa t-deploy" data-quick="deploy"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9H3z"/><path d="M9 20v-6h6v6"/></svg></i>Deploy</button>
+      <button class="qa t-transfer" data-quick="transfer"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h14l-4-4M20 16H6l4 4"/></svg></i>Transfer</button>
+      <button class="qa t-rma" data-quick="rma"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 010 10h-3"/></svg></i>RMA</button>
+      <button class="qa t-recycle" data-quick="recycle"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></i>Recycle</button>
+    </div>
+    <div class="summary">
+      <div class="stat"><b id="st-ser" class="num">0</b><span>Serialized units</span></div>
+      <div class="stat"><b id="st-non" class="num">0</b><span>Mounts &amp; parts</span></div>
+    </div>
+    <div class="backup" id="backupCard" hidden>
+      <div class="backup-txt"><b id="backupH">Back up to OneDrive</b><span id="backupSub">Save your history as an Excel file.</span></div>
+      <button class="btn sm brand" type="button" data-backup>Save to Excel</button>
+    </div>
+    <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" id="stockQ" placeholder="Find a serial or item in your stock" autocomplete="off"></div>
+    <div class="list" id="stockList"></div>
+  </section>
+
+  <!-- LOG -->
+  <section class="panel" id="p-log" hidden>
+    <h2 id="logTitle">Receive items</h2>
+    <div class="seg" id="typeSeg" role="group" aria-label="Action">
+      <button class="t-receive" data-type="receive">Receive</button>
+      <button class="t-deploy" data-type="deploy">Deploy</button>
+      <button class="t-transfer" data-type="transfer">Transfer</button>
+      <button class="t-rma" data-type="rma">RMA</button>
+      <button class="t-recycle" data-type="recycle">Recycle</button>
+    </div>
+    <form class="card" id="logForm" novalidate>
+      <div class="field">
+        <label for="skuSel">Item</label>
+        <select id="skuSel"></select>
+      </div>
+      <div class="field" id="serialBlock" hidden>
+        <span class="lbl" id="serialLbl">Serial numbers</span>
+        <span class="muted" id="serialHint" style="font-size:.82rem" hidden>Scan first if you like. The item fills in when Stock Tracker recognizes the serial.</span>
+        <div class="row">
+          <input type="text" id="serialIn" placeholder="Type a serial" autocomplete="off" autocapitalize="characters" spellcheck="false" class="mono">
+          <button type="button" class="btn" id="addSerialBtn" aria-label="Add typed serial">Add</button>
+        </div>
+        <button type="button" class="btn brand block" id="scanBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><path d="M8 8v8M11 8v8M14 8v8M17 8v8"/></svg>
+          Scan Barcode</button>
+        <div class="serials" id="serialList"></div>
+        <div id="serialWarn"></div>
+      </div>
+      <div class="field" id="qtyBlock" hidden>
+        <span class="lbl">Quantity</span>
+        <div class="qty">
+          <button type="button" id="qtyMinus" aria-label="Decrease">−</button>
+          <input type="number" id="qtyIn" min="1" value="1" inputmode="numeric" aria-label="Quantity">
+          <button type="button" id="qtyPlus" aria-label="Increase">+</button>
+        </div>
+        <div id="qtyWarn"></div>
+      </div>
+      <div class="field" id="accountBlock" hidden>
+        <label for="accountIn">Customer account number</label>
+        <input type="text" id="accountIn" inputmode="numeric" autocomplete="off" placeholder="Account deployed at" class="mono">
+      </div>
+      <div class="field" id="toBlock" hidden>
+        <label for="toIn">Transferred to</label>
+        <input type="text" id="toIn" autocomplete="off" placeholder="Technician name or number">
+        <span class="muted" style="font-size:.82rem">The other tech logs these under Receive and puts your name in Received from.</span>
+      </div>
+      <div class="field" id="rmaBlock" hidden>
+        <label for="rmaIn">RMA number</label>
+        <input type="text" id="rmaIn" autocomplete="off" autocapitalize="characters" placeholder="From the RMA label or email" class="mono">
+      </div>
+      <div class="field" id="fromBlock">
+        <label for="fromIn">Received from <span class="muted">(optional)</span></label>
+        <input type="text" id="fromIn" autocomplete="off" placeholder="Warehouse, shipment or tech">
+      </div>
+      <div class="field">
+        <label for="noteIn">Note <span class="muted">(optional)</span></label>
+        <textarea id="noteIn" placeholder="Work order, fault, condition…"></textarea>
+      </div>
+      <div class="loc" id="locLine"><span class="dot" id="locDot"></span><span id="locTxt">Location not checked yet</span>
+        <button type="button" class="btn ghost" id="locRetry" hidden>Retry</button></div>
+      <div id="formErr"></div>
+      <button type="submit" class="btn primary block" id="saveBtn">Log Received Items</button>
+    </form>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="panel" id="p-history" hidden>
+    <h2>Your history</h2>
+    <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" id="histQ" placeholder="Search serial, account, RMA, item or note" autocomplete="off"></div>
+    <div class="chips" id="histChips" role="group" aria-label="Filter">
+      <button data-f="all" aria-pressed="true">All</button>
+      <button data-f="receive">Received</button>
+      <button data-f="deploy">Deployed</button>
+      <button data-f="transfer">Transferred</button>
+      <button data-f="rma">RMA</button>
+      <button data-f="recycle">Recycled</button>
+    </div>
+    <div class="list" id="histList"></div>
+  </section>
+
+  <!-- COUNT -->
+  <section class="panel" id="p-count" hidden>
+    <div><h2>Inventory count</h2>
+      <p class="muted" style="margin:6px 0 0" id="countIntro">Scan every serialized unit in your truck and storage. Then compare against your records or the inventory team's count list.</p></div>
+    <div id="countEmpty" class="empty"><h3>No count in progress</h3><p>Counting doesn't change your stock. It builds a separate list you can compare and save to Excel.</p><button class="btn primary" type="button" id="countStart">Start a Count</button></div>
+    <div id="countActive" class="panel" hidden>
+      <div class="count-stats">
+        <div class="stat"><b class="num" id="cs-scanned">0</b><span>Scanned</span></div>
+        <div class="stat"><b class="num" id="cs-ok">0</b><span id="cs-ok-l">Matched</span></div>
+        <div class="stat"><b class="num" id="cs-miss">0</b><span id="cs-miss-l">Not scanned</span></div>
+      </div>
+      <button class="btn primary block" type="button" id="liveScanBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><path d="M8 8v8M11 8v8M14 8v8M17 8v8"/></svg>
+        Scan Continuously</button>
+      <div class="row">
+        <input type="text" id="countIn" placeholder="Type a serial" autocomplete="off" autocapitalize="characters" spellcheck="false" class="mono">
+        <button type="button" class="btn" id="countAddBtn">Add</button>
+        <button type="button" class="btn" id="countPhotoBtn" aria-label="Scan from a photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+      </div>
+      <div class="seg" id="cmpSeg" role="group" aria-label="Compare against" style="grid-template-columns:1fr 1fr">
+        <button class="t-count" data-cmp="records" aria-pressed="true">My records</button>
+        <button class="t-count" data-cmp="list" aria-pressed="false">Inventory list</button>
+      </div>
+      <div id="listBox"></div>
+      <div class="list" id="cmpList"></div>
+      <div class="row" style="flex-wrap:wrap">
+        <button class="btn brand block" type="button" id="countExport">Save Count to Excel</button>
+        <button class="btn danger block" type="button" id="countEnd">End Count</button>
+      </div>
+      <div id="countEndConfirm"></div>
+    </div>
+  </section>
+
+  <!-- BACKUP -->
+  <section class="panel" id="p-backup" hidden>
+    <h2>Backup &amp; restore</h2>
+    <div class="card">
+      <h3>Your details</h3>
+      <div class="field"><label for="nameIn">Your name</label>
+        <input type="text" id="nameIn" autocomplete="name" placeholder="First and last name"></div>
+      <div class="field"><label for="dealerIn">Dealership</label>
+        <input type="text" id="dealerIn" autocomplete="organization" placeholder="Dealership name"></div>
+      <p class="muted" style="margin:0;font-size:.85rem">Your name and dealership go on your backup and count files.</p>
+    </div>
+    <div class="card">
+      <h3>Back up to OneDrive</h3>
+      <dl class="kv-plain">
+        <dt>Entries on this phone</dt><dd id="bkCount">0</dd>
+        <dt>Last backup</dt><dd id="bkLast">Never</dd>
+        <dt>New since then</dt><dd id="bkNew">0</dd>
+      </dl>
+      <button class="btn primary block" type="button" data-backup>Save to Excel</button>
+      <ol class="steps">
+        <li>Tap <b>Save to Excel</b>, then <b>Save to Files</b>.</li>
+        <li>Pick <b>OneDrive</b> and your backup folder.</li>
+        <li>Tap <b>Replace</b> when asked, so you always have one up-to-date file.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Restore from Excel</h3>
+      <p class="muted" style="margin:0;font-size:.9rem">New phone, or your records disappeared? Pick your backup file from OneDrive. Missing entries come back and nothing gets doubled up.</p>
+      <label class="btn brand block file-pick" for="restoreIn">Choose Backup File
+        <input type="file" id="restoreIn" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
+      <div id="restoreMsg"></div>
+    </div>
+    <div class="note info" id="homeTip">Add Stock Tracker to your Home Screen: tap Share in Safari, then <b>Add to Home Screen</b>. It opens like an app and iPhone is less likely to clear its data.</div>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="Sections">
+  <div class="tabs-in" role="tablist">
+    <button role="tab" data-tab="stock" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/></svg>Stock</button>
+    <button role="tab" data-tab="log" class="log-tab"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>Log</button>
+    <button role="tab" data-tab="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>History</button>
+    <button role="tab" data-tab="count"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5M8.5 11l2 2 4-4M8.5 17h7"/></svg>Count</button>
+    <button role="tab" data-tab="backup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a5 5 0 01-.6-9.96A6 6 0 0118 9a4.5 4.5 0 01-.5 9H7z"/><path d="M12 11v6M9.5 13.5L12 11l2.5 2.5"/></svg>Backup</button>
+  </div>
+</nav>
+
+<input type="file" id="camInput" accept="image/*" capture="environment" hidden>
+
+<div class="sheet" id="scanSheet" hidden role="dialog" aria-modal="true" aria-labelledby="scanH">
+  <div class="sheet-card">
+    <div class="sheet-head"><h2 id="scanH">Pick the serial</h2><button class="btn ghost" data-close="scanSheet">Close</button></div>
+    <img class="scan-img" id="scanImg" alt="Photo of the barcode label">
+    <div class="loc" id="scanStatus"></div>
+    <div class="list" id="scanResults"></div>
+    <div class="row"><button class="btn block" id="retakeBtn" type="button">Retake Photo</button></div>
+  </div>
+</div>
+
+<div class="sheet" id="detailSheet" hidden role="dialog" aria-modal="true" aria-labelledby="detailH">
+  <div class="sheet-card" id="detailBody"></div>
+</div>
+
+<div class="scanner" id="liveScanner" hidden role="dialog" aria-modal="true" aria-label="Count scanner">
+  <video id="liveVideo" playsinline muted autoplay></video>
+  <div class="aim" id="aim"></div>
+  <div class="scan-top"><b>Counting</b><span class="scan-n" id="liveN">0</span></div>
+  <div class="scan-bot">
+    <div class="scan-hint" id="liveHint">Line up the red line with the serial number barcode.</div>
+    <div class="scan-last" id="liveLast"><small>Scanned serials show here</small></div>
+    <div class="row"><button class="btn block" type="button" id="liveUndo" disabled>Undo Last</button><button class="btn primary block" type="button" id="liveDone">Done</button></div>
+  </div>
+</div>
+<input type="file" id="listIn" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden>
+
+<div class="setup" id="setup" hidden role="dialog" aria-modal="true" aria-labelledby="setupH">
+  <div class="setup-band"><div class="setup-band-in">
+    <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg></div>
+    <h1 id="setupH">Stock Tracker</h1>
+    <p>Log every unit you receive, deploy, transfer, RMA or recycle. Everything stays on this phone, backed up to your OneDrive.</p>
+  </div></div>
+  <form class="setup-body" id="setupForm" novalidate>
+    <div class="field"><label for="setupName">Your name</label>
+      <input type="text" id="setupName" autocomplete="name" placeholder="First and last name"></div>
+    <div class="field"><label for="setupDealer">Dealership</label>
+      <input type="text" id="setupDealer" autocomplete="organization" placeholder="Dealership name"></div>
+    <div id="setupErr"></div>
+    <button class="btn primary block" type="submit">Get Started</button>
+    <p class="muted" style="margin:0;font-size:.88rem">Setting up a new phone? Start here, then restore your backup file on the Backup tab.</p>
+  </form>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* ---------- catalogue ---------- */
+const SKUS = [
+  {id:"adtran-router",   name:"Adtran Wi-Fi 6 Router",                    group:"Wi-Fi",          serial:true},
+  {id:"adtran-ext",      name:"Adtran Wi-Fi 6 Extender",                  group:"Wi-Fi",          serial:true},
+  {id:"cat12-b42",       name:"CAT12 LTE - B42/43/48",                    group:"LTE",            serial:true},
+  {id:"cat12-b38",       name:"CAT 12 LTE - B38/41 2.5GHz",               group:"LTE",            serial:true},
+  {id:"5g-nextgen",      name:"5G Next Generation Outdoor CPE",           group:"5G",             serial:true},
+  {id:"5g-highgain",     name:"5G High Gain Outdoor CPE",                 group:"5G",             serial:true},
+  {id:"ht2000",          name:"Hughes HT2000 Modem J2",                   group:"Satellite",      serial:true},
+  {id:"ht3000",          name:"HT3000 XCI Modem",                         group:"Satellite",      serial:true},
+  {id:"htj-radio",       name:"HTJ RADIO ASSY, LHCP",                     group:"Satellite",      serial:true},
+  {id:"hc210-radio",     name:"RADIO ASSY, HC210-L, MULTI-J, LHCP",       group:"Satellite",      serial:true},
+  {id:"fiber-drop",      name:"Fiber Drop Cable (pre-terminated)",        group:"Fiber",          serial:true},
+  {id:"jpipe-mount",     name:"2 PK J PIPE ANTENNA MOUNT 39\" OD 1.66\"", group:"Mounts & parts", serial:false},
+  {id:"tri-mast",        name:"Hughes TRI MAST MOUNT FOR J1 and J2",      group:"Mounts & parts", serial:false},
+  {id:"fwa-surge",       name:"FWA SURGE ARRESTOR",                       group:"Mounts & parts", serial:false}
+];
+const GROUPS = ["Wi-Fi","LTE","5G","Satellite","Fiber","Mounts & parts"];
+const SKU = Object.fromEntries(SKUS.map(s=>[s.id,s]));
+const TYPES = {
+  receive: {label:"Received",    title:"Receive items",        save:"Log Received Items"},
+  deploy:  {label:"Deployed",    title:"Deploy to a customer", save:"Log Deployment"},
+  transfer:{label:"Transferred", title:"Transfer to another tech",   save:"Log Transfer"},
+  rma:     {label:"RMA",         title:"Send back on RMA",     save:"Log RMA"},
+  recycle: {label:"Recycled",    title:"Recycle equipment",    save:"Log Recycled Items"},
+  return:  {label:"Returned",    title:"Return to warehouse",  save:"Log Return"}
+};
+const TYPE_BY_LABEL = Object.fromEntries(Object.entries(TYPES).map(([k,v])=>[v.label.toLowerCase(),k]));
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const keyOf = s => String(s||"").replace(/\s+/g,"").toUpperCase();
+const fmtTime = ts => new Date(ts).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
+const fmtDate = ts => new Date(ts).toLocaleDateString([], {weekday:"short",month:"short",day:"numeric"});
+const fmtFull = ts => new Date(ts).toLocaleString([], {weekday:"short",year:"numeric",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+function dayLabel(ts){
+  const d=new Date(ts), t=new Date(), y=new Date(); y.setDate(t.getDate()-1);
+  if(d.toDateString()===t.toDateString()) return "Today";
+  if(d.toDateString()===y.toDateString()) return "Yesterday";
+  return fmtDate(ts);
+}
+let toastT;
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,3600); }
+const newId=()=>"e"+Date.now().toString(36)+Math.random().toString(36).slice(2,10);
+
+/* ---------- storage: this phone only ---------- */
+const K = {events:"techstock.events", me:"techstock.me", backup:"techstock.lastBackup", backupIds:"techstock.backupCount"};
+function lsGet(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } }
+const Store = {
+  events: lsGet(K.events, []),
+  persist(){
+    if(!lsSet(K.events, this.events)){ toast("Couldn't save on this phone. Back up to Excel now so nothing is lost."); return false; }
+    return true;
+  },
+  add(ev){ ev.id=newId(); this.events.push(ev); this.events.sort((a,b)=>b.ts-a.ts); return this.persist(); },
+  voidEvent(id, reason){
+    const e=this.events.find(x=>x.id===id); if(!e) return false;
+    Object.assign(e,{voided:true, voidReason:reason||"", voidedAt:Date.now()}); return this.persist();
+  }
+};
+Store.events.sort((a,b)=>b.ts-a.ts);
+// Ask the browser to keep this site's data (iPhone honours this best from the Home Screen)
+try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+
+const ME = Object.assign({name:"", dealer:""}, lsGet(K.me, {}));
+
+/* ---------- derived stock ---------- */
+function computeStock(){
+  const live=Store.events.filter(e=>!e.voided).slice().sort((a,b)=>a.ts-b.ts);
+  const serials=new Map(); const qty={}; SKUS.forEach(s=>qty[s.id]=0);
+  for(const e of live){
+    const s=SKU[e.sku]; if(!s) continue;
+    if(s.serial && e.serialKey) serials.set(e.serialKey,{serial:e.serial, key:e.serialKey, sku:e.sku, ts:e.ts, inStock:e.type==="receive"});
+    else if(!s.serial) qty[e.sku]+=(e.type==="receive"?1:-1)*(Number(e.qty)||0);
+  }
+  const bySku={}; SKUS.forEach(s=>bySku[s.id]=[]);
+  serials.forEach(v=>{ if(v.inStock && bySku[v.sku]) bySku[v.sku].push(v); });
+  Object.values(bySku).forEach(a=>a.sort((x,y)=>y.ts-x.ts));
+  return {bySku, qty, serials};
+}
+let STOCK = computeStock();
+
+/* Work out the item from a serial: first from this phone's records, then from the
+   pattern of serials already logged for each item (same length and opening characters). */
+function guessSku(serial){
+  const key=keyOf(serial); if(!key) return null;
+  const rec=STOCK.serials.get(key);
+  if(rec && SKU[rec.sku]) return {sku:rec.sku, how:"record"};
+  const bySku={};
+  Store.events.forEach(e=>{ if(!e.voided && e.serialKey && SKU[e.sku] && SKU[e.sku].serial) (bySku[e.sku]=bySku[e.sku]||new Set()).add(e.serialKey); });
+  for(const n of [6,5,4]){
+    if(key.length<n+2) continue;
+    const head=key.slice(0,n), hits=[];
+    Object.entries(bySku).forEach(([sku,set])=>{ let c=0; set.forEach(k=>{ if(k.length===key.length && k.slice(0,n)===head) c++; }); if(c) hits.push([sku,c]); });
+    if(hits.length===1) return {sku:hits[0][0], how:"pattern"};
+    if(hits.length>1){ hits.sort((a,b)=>b[1]-a[1]); if(hits[0][1]>=3*hits[1][1]) return {sku:hits[0][0], how:"pattern"}; return null; }
+  }
+  return null;
+}
+
+/* ---------- tabs ---------- */
+let tab="stock";
+function setTab(t){
+  tab=t;
+  document.querySelectorAll(".tabs [role=tab]").forEach(b=>b.setAttribute("aria-selected", b.dataset.tab===t?"true":"false"));
+  ["stock","log","history","count","backup"].forEach(p=>$("p-"+p).hidden = p!==t);
+  try{ sessionStorage.setItem("techstock.tab",t); }catch(e){}
+  if(t==="log") refreshLocation(false);
+  if(t!=="count") stopLiveScan();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll(".tabs [role=tab]").forEach(b=>b.addEventListener("click",()=>setTab(b.dataset.tab)));
+
+/* ---------- stock view ---------- */
+function renderStock(){
+  const q=keyOf($("stockQ").value);
+  let ser=0, non=0;
+  SKUS.forEach(s=>{ if(s.serial) ser+=STOCK.bySku[s.id].length; else non+=Math.max(0,STOCK.qty[s.id]); });
+  $("st-ser").textContent=ser; $("st-non").textContent=non;
+  const list=$("stockList");
+  if(!Store.events.length){
+    list.innerHTML=`<div class="empty"><h3>No stock logged yet</h3><p>Scan items in as you receive them. Got a backup file from another phone? Restore it on the Backup tab.</p><button class="btn primary" data-quick="receive">Receive Your First Item</button></div>`;
+    return;
+  }
+  let html="", shown=0;
+  SKUS.forEach(s=>{
+    const items=STOCK.bySku[s.id];
+    const nameHit=keyOf(s.name).includes(q);
+    const matchItems = q ? items.filter(i=>i.key.includes(q)) : items;
+    if(q && !nameHit && !matchItems.length) return;
+    const count = s.serial ? items.length : STOCK.qty[s.id];
+    if(!q && count===0) return;
+    shown++;
+    const showItems = q && !nameHit ? matchItems : items;
+    const open = q && matchItems.length && !nameHit ? " open" : "";
+    const body = s.serial
+      ? (showItems.length ? showItems.map(i=>`<div class="srow"><span class="mono">${esc(i.serial)}</span><small>${fmtDate(i.ts)}</small>
+          <button class="mini t-deploy" data-act="deploy" data-sku="${s.id}" data-serial="${esc(i.serial)}">Deploy</button>
+          <button class="mini t-transfer" data-act="transfer" data-sku="${s.id}" data-serial="${esc(i.serial)}">Transfer</button></div>`).join("")
+        : `<div class="srow muted">None in stock</div>`)
+      : `<div class="srow"><span style="flex:1" class="muted">Tracked by quantity</span>
+          <button class="mini t-receive" data-act="receive" data-sku="${s.id}">Add</button>
+          <button class="mini t-deploy" data-act="deploy" data-sku="${s.id}">Deploy</button></div>`;
+    html+=`<details class="sku"${open}><summary><div class="sku-name">${esc(s.name)}<small>${esc(s.group)} · ${s.serial?"Serialized":"Quantity"}</small></div>
+      <span class="count ${count<=0?"zero":""}">${count}</span></summary><div class="sku-body">${body}</div></details>`;
+  });
+  if(!shown) html = q ? `<div class="empty"><p>Nothing in your stock matches "${esc($("stockQ").value)}". Check History to see where it went.</p></div>`
+                      : `<div class="empty"><h3>Nothing in stock right now</h3><p>Everything you received has been deployed, transferred, sent on RMA or recycled.</p><button class="btn primary" data-quick="receive">Receive Items</button></div>`;
+  list.innerHTML=html;
+}
+$("stockQ").addEventListener("input",renderStock);
+document.addEventListener("click",e=>{
+  const q=e.target.closest("[data-quick]"); if(q){ openLog(q.dataset.quick); return; }
+  const a=e.target.closest("[data-act]"); if(a){ e.preventDefault(); openLog(a.dataset.act, a.dataset.sku, a.dataset.serial); return; }
+  const b=e.target.closest("[data-backup]"); if(b){ exportExcel(b); }
+});
+
+/* ---------- log form ---------- */
+const F = {type:"receive", serials:[]};
+$("skuSel").innerHTML = `<option value="">Choose an item…</option>` + GROUPS.map(g=>
+  `<optgroup label="${esc(g)}">`+SKUS.filter(s=>s.group===g).map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")+`</optgroup>`).join("");
+
+function openLog(type, sku, serial){
+  setType(type||"receive");
+  if(sku) $("skuSel").value=sku;
+  F.serials=[]; if(serial) F.serials.push(serial);
+  $("qtyIn").value=1; $("formErr").innerHTML="";
+  syncForm(); setTab("log");
+}
+function setType(t){
+  F.type=t;
+  document.querySelectorAll("#typeSeg button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.type===t?"true":"false"));
+  $("logTitle").textContent=TYPES[t].title;
+  $("saveBtn").textContent=TYPES[t].save;
+  $("accountBlock").hidden = t!=="deploy";
+  $("toBlock").hidden = t!=="transfer";
+  $("fromBlock").hidden = t!=="receive";
+  $("rmaBlock").hidden = t!=="rma";
+  syncForm();
+}
+document.querySelectorAll("#typeSeg button").forEach(b=>b.addEventListener("click",()=>setType(b.dataset.type)));
+
+function syncForm(){
+  const s=SKU[$("skuSel").value];
+  $("serialBlock").hidden = !(!s || s.serial);
+  $("serialHint").hidden = !!s;
+  $("qtyBlock").hidden = !(s && !s.serial);
+  if(!s || s.serial){
+    $("serialLbl").textContent = F.type==="receive" ? "Serial numbers (scan each unit)" : "Serial numbers";
+    const warns=[];
+    $("serialList").innerHTML = F.serials.map((v,i)=>{
+      const rec=STOCK.serials.get(keyOf(v)); let bad=false;
+      if(F.type==="receive" && rec && rec.inStock){ bad=true; warns.push(`${v} is already in your stock.`); }
+      if(F.type!=="receive" && !(rec && rec.inStock)) warns.push(`${v} isn't in your stock records. It will still be logged.`);
+      if(s && rec && rec.sku!==s.id && rec.inStock) warns.push(`${v} is in your stock as ${SKU[rec.sku].name}.`);
+      return `<span class="chip ${bad?"bad":""}"><span class="mono">${esc(v)}</span><button type="button" data-rm="${i}" aria-label="Remove ${esc(v)}">✕</button></span>`;
+    }).join("");
+    $("serialWarn").innerHTML = warns.map(w=>`<div class="note warn">${esc(w)}</div>`).join("");
+  }
+  if(s && !s.serial){
+    const have=STOCK.qty[s.id], want=Number($("qtyIn").value)||0;
+    $("qtyWarn").innerHTML = F.type!=="receive" ? (want>have
+      ? `<div class="note warn">You have ${Math.max(0,have)} on record. Logging ${want} will put this item below zero.</div>`
+      : `<div class="note info">${have} on record.</div>`) : "";
+  }
+}
+$("skuSel").addEventListener("change",()=>{ const s=SKU[$("skuSel").value]; if(s && !s.serial) F.serials=[]; syncForm(); });
+$("qtyIn").addEventListener("input",syncForm);
+$("qtyMinus").addEventListener("click",()=>{ $("qtyIn").value=Math.max(1,(Number($("qtyIn").value)||1)-1); syncForm(); });
+$("qtyPlus").addEventListener("click",()=>{ $("qtyIn").value=(Number($("qtyIn").value)||0)+1; syncForm(); });
+$("serialList").addEventListener("click",e=>{ const b=e.target.closest("[data-rm]"); if(b){ F.serials.splice(Number(b.dataset.rm),1); syncForm(); }});
+function addSerial(v){
+  v=String(v||"").trim(); if(!v) return false;
+  if(F.serials.some(x=>keyOf(x)===keyOf(v))){ toast("Already on this list"); return false; }
+  F.serials.push(v);
+  const cur=SKU[$("skuSel").value], g=guessSku(v);
+  if(g && (!cur || (F.serials.length===1 && g.how==="record" && g.sku!==cur.id))){
+    $("skuSel").value=g.sku;
+    toast(`Item set to ${SKU[g.sku].name}`+(g.how==="pattern"?" (matches your other serials)":""));
+  }
+  syncForm(); return true;
+}
+$("addSerialBtn").addEventListener("click",()=>{ if(addSerial($("serialIn").value)) $("serialIn").value=""; });
+$("serialIn").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); if(addSerial($("serialIn").value)) $("serialIn").value=""; }});
+
+/* ---------- location ---------- */
+let LOC={status:"none"};
+function getLocation(){
+  return new Promise(res=>{
+    if(!navigator.geolocation) return res({status:"unsupported"});
+    let done=false; const t=setTimeout(()=>{ if(!done){done=true;res({status:"timeout"})} },9000);
+    try{
+      navigator.geolocation.getCurrentPosition(p=>{ if(done)return; done=true; clearTimeout(t);
+        res({status:"ok", lat:+p.coords.latitude.toFixed(6), lng:+p.coords.longitude.toFixed(6), acc:Math.round(p.coords.accuracy), at:Date.now()}); },
+        er=>{ if(done)return; done=true; clearTimeout(t); res({status: er && er.code===1 ? "denied" : "unavailable"}); },
+        {enableHighAccuracy:true, timeout:8000, maximumAge:60000});
+    }catch(e){ done=true; clearTimeout(t); res({status:"unavailable"}); }
+  });
+}
+function paintLoc(){
+  $("locDot").className="dot"+(LOC.status==="ok"?" ok":LOC.status==="pending"?" wait":"");
+  $("locRetry").hidden = !(LOC.status!=="ok" && LOC.status!=="pending" && LOC.status!=="none");
+  $("locTxt").textContent = LOC.status==="ok" ? `GPS captured (±${LOC.acc} m)` :
+    LOC.status==="pending" ? "Getting GPS location…" :
+    LOC.status==="none" ? "GPS is captured when you save" :
+    LOC.status==="denied" ? "Location is off for this site. Turn it on in Settings › Safari › Location." :
+    "Couldn't get GPS. Entries still save without it.";
+}
+async function refreshLocation(force){
+  if(!force && (LOC.status==="pending" || (LOC.status==="ok" && Date.now()-LOC.at<5*60000))) return;
+  LOC={status:"pending"}; paintLoc();
+  LOC=await getLocation(); paintLoc();
+}
+$("locRetry").addEventListener("click",()=>refreshLocation(true));
+
+/* ---------- save an entry ---------- */
+let saving=false;
+$("logForm").addEventListener("submit", async e=>{
+  e.preventDefault(); if(saving) return;
+  const s=SKU[$("skuSel").value]; const err=m=>{ $("formErr").innerHTML=`<div class="note warn">${esc(m)}</div>`; };
+  $("formErr").innerHTML="";
+  if(!s) return err(F.serials.length ? "Stock Tracker doesn't recognize this serial yet. Choose the item once and it will next time." : "Choose an item first.");
+  const pending=$("serialIn").value.trim(); if(s.serial && pending){ addSerial(pending); $("serialIn").value=""; }
+  if(s.serial && !F.serials.length) return err("Scan or type at least one serial number.");
+  if(s.serial && F.type==="receive"){
+    const dup=F.serials.find(v=>{const r=STOCK.serials.get(keyOf(v)); return r && r.inStock;});
+    if(dup) return err(`${dup} is already in your stock. Remove it from the list to continue.`);
+  }
+  const qty=Math.floor(Number($("qtyIn").value)||0);
+  if(!s.serial && qty<1) return err("Enter a quantity of 1 or more.");
+  const account=$("accountIn").value.trim(), toTech=$("toIn").value.trim();
+  if(F.type==="deploy" && !account) return err("Enter the customer account number.");
+  if(F.type==="transfer" && !toTech) return err("Enter who you transferred it to.");
+
+  saving=true; $("saveBtn").disabled=true; $("saveBtn").textContent="Saving…";
+  if(LOC.status!=="ok" || Date.now()-LOC.at>5*60000) await refreshLocation(true);
+  const base={type:F.type, sku:s.id, skuName:s.name, ts:Date.now(),
+    account:F.type==="deploy"?account:"", accountKey:F.type==="deploy"?keyOf(account):"",
+    toTech:F.type==="transfer"?toTech:"", from:F.type==="receive"?$("fromIn").value.trim():"",
+    rma:F.type==="rma"?$("rmaIn").value.trim():"", note:$("noteIn").value.trim(),
+    lat:LOC.status==="ok"?LOC.lat:null, lng:LOC.status==="ok"?LOC.lng:null, acc:LOC.status==="ok"?LOC.acc:null,
+    voided:false};
+  const rows = s.serial ? F.serials.map(v=>Object.assign({},base,{serial:v.trim(), serialKey:keyOf(v), qty:1}))
+                        : [Object.assign({},base,{serial:"", serialKey:"", qty})];
+  let ok=true; rows.forEach(r=>{ if(!Store.add(r)) ok=false; });
+  if(ok){
+    toast(`${TYPES[F.type].label} ${s.serial ? rows.length+" unit"+(rows.length>1?"s":"") : qty+" × "+s.name}`);
+    F.serials=[]; $("qtyIn").value=1; $("noteIn").value=""; $("accountIn").value=""; $("toIn").value=""; $("rmaIn").value="";
+    if(F.type!=="receive") $("skuSel").value="";
+  }
+  saving=false; $("saveBtn").disabled=false; $("saveBtn").textContent=TYPES[F.type].save;
+  renderAll();
+});
+
+/* ---------- barcode scanning from a photo ---------- */
+let photoTarget="log";
+$("scanBtn").addEventListener("click",()=>{ photoTarget="log"; $("camInput").value=""; $("camInput").click(); });
+$("retakeBtn").addEventListener("click",()=>{ $("camInput").value=""; $("camInput").click(); });
+$("camInput").addEventListener("change",async ()=>{
+  const f=$("camInput").files && $("camInput").files[0]; if(!f) return;
+  const url=URL.createObjectURL(f);
+  $("scanImg").src=url; $("scanResults").innerHTML="";
+  $("scanStatus").innerHTML=`<span class="spinner"></span><span>Reading barcodes…</span>`;
+  $("scanSheet").hidden=false;
+  let found=[];
+  try{ found=await decodeImage(url); }catch(e){ found=[]; }
+  if(!found.length){
+    $("scanStatus").innerHTML=`<span class="dot"></span><span>No barcode found. Get closer, fill the frame with the label and avoid glare. Or close this and type the serial.</span>`;
+    return;
+  }
+  $("scanStatus").innerHTML=`<span class="dot ok"></span><span>${found.length===1?"Found 1 barcode. Tap it to add.":"Found "+found.length+" barcodes. Tap the serial number"+(photoTarget==="count"?"s to count.":".")}</span>`;
+  $("scanResults").innerHTML=found.map((r,i)=>`<button class="result" data-pick="${i}"><span class="mono">${esc(r.text)}</span><small>${esc(r.format)}</small></button>`).join("");
+  $("scanResults").onclick=e=>{ const b=e.target.closest("[data-pick]"); if(!b) return;
+    const pick=found[Number(b.dataset.pick)];
+    if(photoTarget==="count"){ countAdd(pick.text); b.disabled=true; b.style.opacity=".5"; return; }
+    if(addSerial(pick.text)) toast("Added "+pick.text);
+    $("scanSheet").hidden=true; };
+});
+function loadImg(url){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=url; }); }
+const tick=()=>new Promise(r=>setTimeout(r,0));
+async function decodeImage(url){
+  const img=await loadImg(url);
+  const found=new Map();
+  const add=(text,format)=>{ text=String(text||"").trim(); if(text && !found.has(text)) found.set(text,{text,format:String(format||"").replace(/_/g," ").toLowerCase()}); };
+  if("BarcodeDetector" in window){ try{ const bd=new window.BarcodeDetector(); (await bd.detect(img)).forEach(r=>add(r.rawValue, r.format)); }catch(e){} }
+  const Z=window.ZXing;
+  if(Z){
+    const hints=new Map(), BF=Z.BarcodeFormat;
+    hints.set(Z.DecodeHintType.TRY_HARDER,true);
+    hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[BF.CODE_128,BF.CODE_39,BF.CODE_93,BF.EAN_13,BF.EAN_8,BF.UPC_A,BF.UPC_E,BF.ITF,BF.CODABAR,BF.QR_CODE,BF.DATA_MATRIX,BF.PDF_417].filter(x=>x!==undefined));
+    const reader=new Z.MultiFormatReader(); reader.setHints(hints);
+    const max=1400, sc=Math.min(1, max/Math.max(img.naturalWidth,img.naturalHeight));
+    const W=Math.round(img.naturalWidth*sc), H=Math.round(img.naturalHeight*sc);
+    const tryCanvas=c=>{ try{ const src=new Z.HTMLCanvasElementLuminanceSource(c);
+      const r=reader.decodeWithState(new Z.BinaryBitmap(new Z.HybridBinarizer(src))); add(r.getText(), BF[r.getBarcodeFormat()]); }catch(e){} };
+    for(const rot of [0,90]){
+      const base=document.createElement("canvas"); const bw=rot?H:W, bh=rot?W:H; base.width=bw; base.height=bh;
+      const g=base.getContext("2d",{willReadFrequently:true});
+      if(rot){ g.translate(bw,0); g.rotate(Math.PI/2); }
+      g.drawImage(img,0,0,W,H); tryCanvas(base); await tick();
+      for(const frac of [1/3,1/5]){
+        const bandH=Math.round(bh*frac), step=Math.round(bandH/2);
+        for(let y=0; y+bandH<=bh+1; y+=step){
+          const c=document.createElement("canvas"); c.width=bw; c.height=bandH;
+          c.getContext("2d",{willReadFrequently:true}).drawImage(base,0,y,bw,bandH,0,0,bw,bandH);
+          tryCanvas(c); await tick();
+        }
+      }
+    }
+  }
+  return [...found.values()];
+}
+
+/* ---------- history ---------- */
+let histF="all";
+$("histChips").addEventListener("click",e=>{ const b=e.target.closest("[data-f]"); if(!b) return; histF=b.dataset.f;
+  $("histChips").querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x===b?"true":"false")); renderHistory(); });
+$("histQ").addEventListener("input",renderHistory);
+function evLine(e){
+  const s=SKU[e.sku]; const name=(s&&s.name)||e.skuName||"Item";
+  const what = e.serial ? `<span class="mono">${esc(e.serial)}</span>` : `Qty ${esc(e.qty)}`;
+  const where = e.type==="deploy"&&e.account ? ` · Acct <span class="mono">${esc(e.account)}</span>` :
+                e.type==="transfer"&&e.toTech ? ` · To ${esc(e.toTech)}` :
+                e.type==="receive"&&e.from ? ` · From ${esc(e.from)}` :
+                e.type==="rma"&&e.rma ? ` · RMA <span class="mono">${esc(e.rma)}</span>` : "";
+  return {name, sub: what+where};
+}
+function renderHistory(){
+  const q=$("histQ").value.trim().toLowerCase(), qk=keyOf(q);
+  const rows=Store.events.filter(e=>(histF==="all"||e.type===histF) && (!q ||
+    (e.serialKey||"").includes(qk) || (e.accountKey||"").includes(qk) ||
+    [e.skuName,e.note,e.toTech,e.from,e.rma].some(v=>String(v||"").toLowerCase().includes(q))));
+  const list=$("histList");
+  if(!Store.events.length){ list.innerHTML=`<div class="empty"><h3>No history yet</h3><p>Every item you receive, deploy, transfer, send on RMA or recycle is listed here with the date, time and GPS location.</p><button class="btn primary" data-quick="receive">Receive Items</button></div>`; return; }
+  if(!rows.length){ list.innerHTML=`<div class="empty"><p>No entries match. Try a shorter search or another filter.</p></div>`; return; }
+  let html="", last="";
+  rows.slice(0,500).forEach(e=>{
+    const d=dayLabel(e.ts); if(d!==last){ html+=`<div class="day">${esc(d)}</div>`; last=d; }
+    const l=evLine(e), T=TYPES[e.type]||{label:e.type};
+    html+=`<button class="ev t-${esc(e.type)} ${e.voided?"voided":""}" data-ev="${esc(e.id)}"><div class="ev-main"><span class="ev-title">${esc(l.name)}</span><span class="ev-sub">${l.sub}</span></div>
+      <div class="ev-side"><span class="pill">${e.voided?"Voided":esc(T.label)}</span><span class="num">${fmtTime(e.ts)}</span></div></button>`;
+  });
+  list.innerHTML=html;
+}
+$("histList").addEventListener("click",e=>{ const b=e.target.closest("[data-ev]"); if(b) openDetail(b.dataset.ev); });
+
+function openDetail(id){
+  const e=Store.events.find(x=>x.id===id); if(!e) return;
+  const l=evLine(e), T=TYPES[e.type]||{label:e.type};
+  const map = e.lat!=null ? `<a href="https://www.google.com/maps?q=${e.lat},${e.lng}" target="_blank" rel="noopener">${e.lat}, ${e.lng}</a> <span class="muted">±${esc(e.acc)} m</span>` : `<span class="muted">Not captured</span>`;
+  $("detailBody").innerHTML=`
+    <div class="sheet-head"><h2 id="detailH">${esc(l.name)}</h2><button class="btn ghost" data-close="detailSheet">Close</button></div>
+    <div class="t-${esc(e.type)}"><span class="pill">${e.voided?"Voided":esc(T.label)}</span></div>
+    <dl class="kv">
+      ${e.serial?`<dt>Serial</dt><dd class="mono">${esc(e.serial)}</dd>`:`<dt>Quantity</dt><dd>${esc(e.qty)}</dd>`}
+      <dt>When</dt><dd>${esc(fmtFull(e.ts))}</dd>
+      ${e.account?`<dt>Account</dt><dd class="mono">${esc(e.account)}</dd>`:""}
+      ${e.toTech?`<dt>Transferred to</dt><dd>${esc(e.toTech)}</dd>`:""}
+      ${e.from?`<dt>Received from</dt><dd>${esc(e.from)}</dd>`:""}
+      ${e.rma?`<dt>RMA number</dt><dd class="mono">${esc(e.rma)}</dd>`:""}
+      <dt>GPS</dt><dd>${map}</dd>
+      ${e.note?`<dt>Note</dt><dd>${esc(e.note)}</dd>`:""}
+      ${e.voided?`<dt>Voided</dt><dd>${e.voidedAt?esc(fmtFull(e.voidedAt)):"Yes"}${e.voidReason?" · "+esc(e.voidReason):""}</dd>`:""}
+    </dl>
+    ${!e.voided ? `<div id="voidArea"><button class="btn danger block" id="voidStart" type="button">Void This Entry</button></div>`:""}`;
+  $("detailSheet").hidden=false;
+  const vs=$("voidStart");
+  if(vs) vs.addEventListener("click",()=>{
+    $("voidArea").innerHTML=`<div class="card"><div class="field"><label for="voidReason">Why are you voiding it?</label>
+      <input type="text" id="voidReason" placeholder="Scanned wrong unit, duplicate…"></div>
+      <p class="muted" style="margin:0;font-size:.85rem">The entry stays in history, marked as voided, and no longer counts toward your stock.</p>
+      <div class="row"><button class="btn block" type="button" data-close="detailSheet">Keep It</button><button class="btn danger block" type="button" id="voidGo">Void Entry</button></div></div>`;
+    $("voidGo").addEventListener("click",()=>{
+      if(Store.voidEvent(e.id,$("voidReason").value.trim())){ $("detailSheet").hidden=true; toast("Entry voided"); renderAll(); }
+    });
+  });
+}
+document.addEventListener("click",e=>{ const c=e.target.closest("[data-close]"); if(c) $(c.dataset.close).hidden=true; });
+document.querySelectorAll(".sheet").forEach(s=>s.addEventListener("click",e=>{ if(e.target===s) s.hidden=true; }));
+
+/* ---------- your details ---------- */
+function fillMe(){ $("nameIn").value=ME.name; $("dealerIn").value=ME.dealer; }
+fillMe();
+function saveMe(){
+  const n=$("nameIn").value.trim(), d=$("dealerIn").value.trim();
+  if(!n || !d){ toast(!n?"Your name can't be blank.":"Dealership can't be blank."); fillMe(); return; }
+  ME.name=n; ME.dealer=d; lsSet(K.me, ME); paintHeader(); toast("Details saved");
+}
+$("nameIn").addEventListener("change",saveMe); $("dealerIn").addEventListener("change",saveMe);
+
+/* first-run setup: name and dealership */
+function showSetup(){
+  const need=!ME.name || !ME.dealer;
+  $("setup").hidden=!need;
+  if(need){ $("setupName").value=ME.name; $("setupDealer").value=ME.dealer; }
+}
+$("setupForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const n=$("setupName").value.trim(), d=$("setupDealer").value.trim();
+  if(!n || !d){ $("setupErr").innerHTML=`<div class="note warn">${!n&&!d?"Enter your name and dealership.":!n?"Enter your name.":"Enter your dealership."}</div>`; ($(!n?"setupName":"setupDealer")).focus(); return; }
+  ME.name=n; ME.dealer=d;
+  if(!lsSet(K.me, ME)){ $("setupErr").innerHTML=`<div class="note warn">This phone isn't letting Stock Tracker save. Turn off Private Browsing in Safari and try again.</div>`; return; }
+  $("setupErr").innerHTML=""; fillMe(); paintHeader(); $("setup").hidden=true;
+});
+function paintHeader(){
+  $("who").textContent = ME.name ? ME.name+(ME.dealer?" · "+ME.dealer:"") : "Saved on this phone";
+}
+
+/* ---------- Excel backup ---------- */
+// Column order is the restore contract: restore reads these headers by name.
+const COLS = [
+  ["Date",             e=>new Date(e.ts).toLocaleString([], {year:"numeric",month:"2-digit",day:"2-digit",hour:"numeric",minute:"2-digit"})],
+  ["Action",           e=>(TYPES[e.type]||{label:e.type}).label],
+  ["Item",             e=>(SKU[e.sku]&&SKU[e.sku].name)||e.skuName||""],
+  ["Serial",           e=>e.serial||""],
+  ["Qty",              e=>Number(e.qty)||""],
+  ["Customer account", e=>e.account||""],
+  ["RMA number",       e=>e.rma||""],
+  ["Transferred to",   e=>e.toTech||""],
+  ["Received from",    e=>e.from||""],
+  ["Note",             e=>e.note||""],
+  ["Latitude",         e=>e.lat??""],
+  ["Longitude",        e=>e.lng??""],
+  ["GPS accuracy (m)", e=>e.acc??""],
+  ["Voided",           e=>e.voided?"Yes":""],
+  ["Void reason",      e=>e.voidReason||""],
+  ["Entry ID",         e=>e.id],
+  ["Item code",        e=>e.sku],
+  ["Timestamp",        e=>new Date(e.ts).toISOString()],
+  ["Voided at",        e=>e.voidedAt?new Date(e.voidedAt).toISOString():""]
+];
+let DLP=null;
+function getDL(){ if(!DLP) DLP=(window.claude && typeof window.claude.use==="function") ? window.claude.use("downloads").catch(()=>null) : Promise.resolve(null); return DLP; }
+async function saveFile(file){
+  const dl=await getDL();
+  if(dl){
+    try{ await dl.save({filename:file.name, data:file}); return; }
+    catch(e){ if(e && e.code==="declined"){ const a=new Error("declined"); a.name="AbortError"; throw a; } throw e; }
+  }
+  if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file]}); return; } // iPhone: Save to Files → OneDrive
+  const a=document.createElement("a"); a.href=URL.createObjectURL(file); a.download=file.name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),10000);
+}
+function fileName(){ const who=ME.name.replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,""); return `Stock-Tracker-${who||"Backup"}.xlsx`; }
+function buildWorkbook(){
+  const aoa=[COLS.map(c=>c[0]), ...Store.events.map(e=>COLS.map(c=>c[1](e)))];
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws["!cols"]=[18,11,34,22,6,16,14,18,18,30,11,11,8,7,20,16,14,24,24].map(w=>({wch:w}));
+  ws["!autofilter"]={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:Math.max(1,aoa.length-1),c:COLS.length-1}})};
+  const onHand=[["Item","Serial / quantity","Received"]];
+  SKUS.forEach(sk=>{ if(sk.serial) STOCK.bySku[sk.id].forEach(i=>onHand.push([sk.name,i.serial,new Date(i.ts).toLocaleDateString()])); else if(STOCK.qty[sk.id]) onHand.push([sk.name,"Qty "+STOCK.qty[sk.id],""]); });
+  const ws2=XLSX.utils.aoa_to_sheet(onHand); ws2["!cols"]=[{wch:34},{wch:22},{wch:14}];
+  const info=XLSX.utils.aoa_to_sheet([["Technician",ME.name],["Dealership",ME.dealer],["Saved",new Date().toLocaleString()],["Entries",Store.events.length],[],["Restore this file from the Backup tab in Stock Tracker. Don't edit the Entry ID, Item code or Timestamp columns."]]);
+  info["!cols"]=[{wch:14},{wch:40}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"History"); XLSX.utils.book_append_sheet(wb,ws2,"On hand"); XLSX.utils.book_append_sheet(wb,info,"About");
+  return XLSX.write(wb,{bookType:"xlsx",type:"array"});
+}
+async function exportExcel(btn){
+  if(!window.XLSX){ toast("Excel tools didn't load. Connect to the internet and reopen Stock Tracker."); return; }
+  if(!Store.events.length){ toast("Nothing to back up yet."); return; }
+  if(!ME.name){ setTab("backup"); $("nameIn").focus(); toast("Add your name first so your file is easy to find."); return; }
+  const name=fileName();
+  const file=new File([buildWorkbook()], name, {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+  if(btn) btn.disabled=true;
+  try{
+    await saveFile(file);
+    lsSet(K.backup, Date.now()); lsSet(K.backupIds, Store.events.length);
+    toast("Backup ready. Make sure it went to OneDrive."); paintBackup();
+  }catch(e){
+    if(e && e.name==="AbortError") return; // closed the share sheet
+    toast("Couldn't create the backup. Try again.");
+  }finally{ if(btn) btn.disabled=false; }
+}
+function paintBackup(){
+  const last=lsGet(K.backup,null), n=Store.events.length;
+  const newSince=Math.max(0, n-(lsGet(K.backupIds,0)||0));
+  const days=last?Math.floor((Date.now()-last)/864e5):null;
+  const due = n>0 && (days===null || days>=7 || newSince>=25);
+  const card=$("backupCard"); card.hidden=!n; card.classList.toggle("due",due);
+  $("backupH").textContent = days===null ? "Not backed up yet" : days===0 ? "Backed up today" : `Last backup ${days} day${days===1?"":"s"} ago`;
+  $("backupSub").textContent = due ? (newSince ? `${newSince} entr${newSince===1?"y":"ies"} only on this phone. Save to OneDrive.` : "Save a fresh copy to OneDrive.")
+                                   : newSince ? `${newSince} new since your last backup.` : "Your OneDrive copy is up to date.";
+  $("mode").textContent = !n ? "Nothing yet" : days===null ? "Not backed up" : due ? "Backup due" : "Backed up";
+  $("mode").className = "mode" + (n && due ? " due" : "");
+  $("bkCount").textContent=n; $("bkNew").textContent=newSince;
+  $("bkLast").textContent = last ? fmtFull(last) : "Never";
+}
+
+/* ---------- restore ---------- */
+function cellStr(v){ return v==null ? "" : String(v).trim(); }
+function parseBackup(buf){
+  const wb=XLSX.read(buf,{type:"array"});
+  const ws=wb.Sheets["History"]; if(!ws) throw new Error("This doesn't look like a Stock Tracker backup. It has no History sheet.");
+  const rows=XLSX.utils.sheet_to_json(ws,{defval:"",raw:false});
+  if(rows.length && !("Entry ID" in rows[0] && "Timestamp" in rows[0])) throw new Error("This file is missing the Entry ID or Timestamp column, so it can't be restored.");
+  const out=[];
+  rows.forEach(r=>{
+    const id=cellStr(r["Entry ID"]), ts=Date.parse(cellStr(r["Timestamp"]));
+    const type=TYPE_BY_LABEL[cellStr(r["Action"]).toLowerCase()];
+    if(!id || !ts || !type) return;
+    let sku=cellStr(r["Item code"]);
+    if(!SKU[sku]){ const hit=SKUS.find(s=>s.name===cellStr(r["Item"])); sku=hit?hit.id:sku; }
+    const serial=cellStr(r["Serial"]), account=cellStr(r["Customer account"]);
+    const num=v=>{ const n=parseFloat(cellStr(v)); return isFinite(n)?n:null; };
+    const va=Date.parse(cellStr(r["Voided at"]));
+    out.push({id, type, ts, sku, skuName:cellStr(r["Item"]), serial, serialKey:keyOf(serial),
+      qty:Number(cellStr(r["Qty"]))||1, account, accountKey:keyOf(account), rma:cellStr(r["RMA number"]),
+      toTech:cellStr(r["Transferred to"]), from:cellStr(r["Received from"]), note:cellStr(r["Note"]),
+      lat:num(r["Latitude"]), lng:num(r["Longitude"]), acc:num(r["GPS accuracy (m)"]),
+      voided:cellStr(r["Voided"]).toLowerCase()==="yes", voidReason:cellStr(r["Void reason"]), voidedAt:isFinite(va)?va:null});
+  });
+  return {entries:out, skipped:rows.length-out.length};
+}
+$("restoreIn").addEventListener("change",async()=>{
+  const f=$("restoreIn").files && $("restoreIn").files[0]; const msg=$("restoreMsg");
+  if(!f) return;
+  if(!window.XLSX){ msg.innerHTML=`<div class="note warn">Excel tools didn't load. Connect to the internet and reopen Stock Tracker.</div>`; return; }
+  msg.innerHTML=`<div class="loc"><span class="spinner"></span><span>Reading ${esc(f.name)}…</span></div>`;
+  try{
+    const {entries, skipped}=parseBackup(await f.arrayBuffer());
+    const byId=new Map(Store.events.map(e=>[e.id,e]));
+    let added=0, updated=0;
+    entries.forEach(e=>{
+      const have=byId.get(e.id);
+      if(!have){ Store.events.push(e); added++; }
+      else if(e.voided && !have.voided){ Object.assign(have,{voided:true, voidReason:e.voidReason, voidedAt:e.voidedAt}); updated++; }
+    });
+    Store.events.sort((a,b)=>b.ts-a.ts);
+    if(!Store.persist()) throw new Error("This phone is out of space for Stock Tracker data.");
+    msg.innerHTML=`<div class="note info">Restored <b>${added}</b> entr${added===1?"y":"ies"}${updated?`, updated ${updated} voided`:""}. ${entries.length-added} ${entries.length-added===1?"was":"were"} already on this phone.${skipped?` ${skipped} row${skipped===1?"":"s"} couldn't be read and ${skipped===1?"was":"were"} skipped.`:""}</div>`;
+    if(added && !lsGet(K.backup,null)){ lsSet(K.backup, f.lastModified||Date.now()); lsSet(K.backupIds, Store.events.length); }
+    toast(added?`Restored ${added} entries`:"Already up to date");
+    renderAll();
+  }catch(e){
+    msg.innerHTML=`<div class="note warn">${esc(e && e.message || "Couldn't read that file. Pick the .xlsx backup Stock Tracker saved.")}</div>`;
+  }finally{ $("restoreIn").value=""; }
+});
+
+
+/* ---------- quarterly count (separate from stock; never changes it) ---------- */
+const CK="techstock.count";
+let COUNT = lsGet(CK, null);   // {startedAt, items:[{code,key,ts}], list:{file,loadedAt,headers,rows,col}|null}
+let cmpMode="records";
+function saveCount(){ if(!lsSet(CK, COUNT)) toast("Couldn't save the count on this phone. Save it to Excel now."); }
+$("countStart").addEventListener("click",()=>{ COUNT={startedAt:Date.now(), items:[], list:null}; saveCount(); renderCount(); });
+
+function countAdd(code){
+  code=String(code||"").trim(); const key=keyOf(code); if(!key) return "empty";
+  if(!COUNT) return "none";
+  if(COUNT.items.some(i=>i.key===key)) return "dup";
+  COUNT.items.unshift({code, key, ts:Date.now()}); saveCount(); renderCount(); return "added";
+}
+function countRemove(key){ COUNT.items=COUNT.items.filter(i=>i.key!==key); saveCount(); renderCount(); }
+$("countAddBtn").addEventListener("click",()=>{ const r=countAdd($("countIn").value); if(r==="dup") toast("Already counted"); if(r!=="empty") $("countIn").value=""; });
+$("countIn").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("countAddBtn").click(); }});
+$("countPhotoBtn").addEventListener("click",()=>{ photoTarget="count"; $("camInput").value=""; $("camInput").click(); });
+
+/* what this phone's records say about a serial */
+function recordNote(key){
+  const evs=Store.events.filter(e=>!e.voided && e.serialKey===key);
+  if(!evs.length){ const g=guessSku(key); return {text:"No record on this phone", item:g?SKU[g.sku].name+" (likely)":""}; }
+  const e=evs[0]; const item=(SKU[e.sku]&&SKU[e.sku].name)||e.skuName||"";
+  const T=(TYPES[e.type]||{label:e.type}).label;
+  const extra = e.account?` · Acct ${e.account}` : e.toTech?` · To ${e.toTech}` : e.rma?` · RMA ${e.rma}` : e.from?` · From ${e.from}` : "";
+  return {text:`${T} ${fmtDate(e.ts)}${extra}`, item, type:e.type};
+}
+
+/* the inventory team's list */
+function listKeys(){
+  const L=COUNT&&COUNT.list; if(!L) return null;
+  const m=new Map();
+  L.rows.forEach(r=>{ const v=String(r[L.col]==null?"":r[L.col]).trim(); const k=keyOf(v); if(k && !m.has(k)) m.set(k,v); });
+  return m;
+}
+function guessColumn(headers, rows){
+  const byName=headers.findIndex(h=>/serial|s\/n|\bsn\b|esn|imei/i.test(String(h)));
+  if(byName>=0) return byName;
+  const known=new Set([...(COUNT?COUNT.items.map(i=>i.key):[]), ...[...STOCK.serials.keys()]]);
+  let best=0, bestScore=-1;
+  headers.forEach((h,c)=>{ const score=rows.reduce((n,r)=>n+(known.has(keyOf(r[c]))?1:0),0); if(score>bestScore){best=c;bestScore=score;} });
+  return best;
+}
+$("listIn").addEventListener("change",async()=>{
+  const f=$("listIn").files&&$("listIn").files[0]; if(!f) return;
+  if(!window.XLSX){ toast("Excel tools didn't load. Connect to the internet and reopen Stock Tracker."); return; }
+  try{
+    const wb=XLSX.read(await f.arrayBuffer(),{type:"array"});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const grid=XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:false}).filter(r=>r.some(c=>String(c).trim()));
+    if(!grid.length) throw 0;
+    let hi=grid.findIndex(r=>r.filter(c=>String(c).trim()).length>=2); if(hi<0||hi>10) hi=0;
+    const width=Math.max(...grid.map(r=>r.length));
+    const headers=Array.from({length:width},(_,c)=>String(grid[hi][c]||"").trim()||`Column ${c+1}`);
+    const rows=grid.slice(hi+1).map(r=>Array.from({length:width},(_,c)=>String(r[c]==null?"":r[c]).trim()));
+    COUNT.list={file:f.name, loadedAt:Date.now(), headers, rows, col:guessColumn(headers,rows)};
+    saveCount(); cmpMode="list"; renderCount();
+    toast(`Loaded ${rows.length} rows from ${f.name}`);
+  }catch(e){ toast("Couldn't read that file. Use the Excel or CSV list from the inventory team."); }
+  finally{ $("listIn").value=""; }
+});
+$("cmpSeg").addEventListener("click",e=>{ const b=e.target.closest("[data-cmp]"); if(!b) return; cmpMode=b.dataset.cmp; renderCount(); });
+
+/* build every comparison row once; the screen and the Excel file both use it */
+function countRows(){
+  const scanned=new Map(COUNT.items.map(i=>[i.key,i]));
+  const inStock=new Map(); STOCK.serials.forEach((v,k)=>{ if(v.inStock) inStock.set(k,v); });
+  const list=listKeys();
+  const keys=new Set([...scanned.keys(), ...inStock.keys(), ...(list?list.keys():[])]);
+  return [...keys].map(k=>{
+    const sc=scanned.get(k), st=inStock.get(k), note=recordNote(k);
+    return {key:k, serial:(sc&&sc.code)||(st&&st.serial)||(list&&list.get(k))||k,
+      item:(st&&SKU[st.sku]&&SKU[st.sku].name)||note.item||"",
+      scanned:!!sc, scannedAt:sc?sc.ts:null, inStock:!!st, onList:list?list.has(k):null, note:note.text};
+  });
+}
+function groupHTML(cls, title, sub, rows, line, removable){
+  const empty = !rows.length;
+  return `<details class="grp ${empty?"zero":cls}"${!empty&&cls==="bad"?" open":""}><summary><span class="lbl2">${esc(title)}<small>${esc(sub)}</small></span><span class="gcount">${rows.length}</span></summary>
+    <div class="grp-body">${empty?`<div class="crow muted">None</div>`:rows.map(r=>`<div class="crow"><div class="crow-main"><span class="mono">${esc(r.serial)}</span>${r.item?`<small>${esc(r.item)}</small>`:""}<small>${esc(line(r))}</small></div>${removable?`<button class="x" type="button" data-unc="${esc(r.key)}" aria-label="Remove ${esc(r.serial)} from count">✕</button>`:""}</div>`).join("")}</div></details>`;
+}
+function renderCount(){
+  const active=!!COUNT;
+  $("countEmpty").hidden=active; $("countActive").hidden=!active;
+  if(!active) return;
+  $("countIntro").textContent=`Started ${fmtFull(COUNT.startedAt)}. Scan every serialized unit in your truck and storage.`;
+  document.querySelectorAll("#cmpSeg button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.cmp===cmpMode?"true":"false"));
+  const rows=countRows(), L=COUNT.list;
+  $("cs-scanned").textContent=COUNT.items.length;
+  // inventory list panel
+  if(cmpMode==="list"){
+    $("listBox").innerHTML = L
+      ? `<div class="card"><div class="cmp-head"><h3>${esc(L.file)}</h3><button class="btn sm" type="button" data-pick-list>Replace</button></div>
+         <div class="field"><label for="listCol">Serial number column</label><select id="listCol">${L.headers.map((h,i)=>`<option value="${i}"${i===L.col?" selected":""}>${esc(h)}</option>`).join("")}</select></div>
+         <span class="muted" style="font-size:.85rem">${listKeys().size} serials on this list.</span></div>`
+      : `<div class="empty"><h3>Load the inventory team's list</h3><p>Pick the Excel or CSV count list they sent you. Your scans are compared against it line by line.</p><button class="btn primary" type="button" data-pick-list>Choose List File</button></div>`;
+    const sel=$("listCol"); if(sel) sel.addEventListener("change",()=>{ COUNT.list.col=Number(sel.value); saveCount(); renderCount(); });
+  } else $("listBox").innerHTML="";
+  let html="";
+  if(cmpMode==="records"){
+    const ok=rows.filter(r=>r.scanned&&r.inStock), miss=rows.filter(r=>!r.scanned&&r.inStock), extra=rows.filter(r=>r.scanned&&!r.inStock);
+    $("cs-ok").textContent=ok.length; $("cs-ok-l").textContent="Matched";
+    $("cs-miss").textContent=miss.length; $("cs-miss-l").textContent="Not scanned";
+    html = groupHTML("bad","In your stock, not scanned","Find these, or check what happened to them",miss,r=>`Your records: ${r.note}`,false)
+         + groupHTML("bad","Scanned, not in your stock","Your records say these left your stock",extra,r=>`Your records: ${r.note}`,true)
+         + groupHTML("ok","Matched","Scanned and in your stock",ok,r=>`Scanned ${fmtTime(r.scannedAt)}`,true);
+  } else if(L){
+    const ok=rows.filter(r=>r.scanned&&r.onList), miss=rows.filter(r=>!r.scanned&&r.onList), extra=rows.filter(r=>r.scanned&&!r.onList);
+    $("cs-ok").textContent=ok.length; $("cs-ok-l").textContent="On their list";
+    $("cs-miss").textContent=miss.length; $("cs-miss-l").textContent="Not scanned";
+    html = groupHTML("bad","On their list, not scanned","Your history shows where these went",miss,r=>`Your records: ${r.note}`,false)
+         + groupHTML("bad","Scanned, not on their list","You have these, but they aren't assigned to you",extra,r=>`Your records: ${r.note}`,true)
+         + groupHTML("ok","Matched","Scanned and on their list",ok,r=>`Scanned ${fmtTime(r.scannedAt)}`,true);
+  } else { $("cs-ok").textContent="–"; $("cs-miss").textContent="–"; }
+  if(!COUNT.items.length && cmpMode==="records") html=`<div class="note info">Tap Scan Continuously and work through your truck and storage. Each new serial beeps once.</div>`+html;
+  $("cmpList").innerHTML=html;
+}
+document.addEventListener("click",e=>{
+  if(e.target.closest("[data-pick-list]")){ $("listIn").click(); return; }
+  const u=e.target.closest("[data-unc]"); if(u){ countRemove(u.dataset.unc); toast("Removed from count"); }
+});
+
+/* end / export */
+$("countEnd").addEventListener("click",()=>{
+  $("countEndConfirm").innerHTML=`<div class="card"><b>End this count?</b><p class="muted" style="margin:0;font-size:.9rem">The ${COUNT.items.length} scanned serials are cleared from this phone. Save the count to Excel first if you need it. Your stock and history aren't affected.</p>
+    <div class="row"><button class="btn block" type="button" id="endKeep">Keep Counting</button><button class="btn danger block" type="button" id="endGo">End Count</button></div></div>`;
+  $("endKeep").onclick=()=>$("countEndConfirm").innerHTML="";
+  $("endGo").onclick=()=>{ COUNT=null; try{localStorage.removeItem(CK)}catch(e){} $("countEndConfirm").innerHTML=""; cmpMode="records"; renderCount(); toast("Count ended"); };
+});
+$("countExport").addEventListener("click",async()=>{
+  if(!window.XLSX){ toast("Excel tools didn't load. Connect to the internet and reopen Stock Tracker."); return; }
+  const rows=countRows(), hasList=!!COUNT.list;
+  const yn=v=>v===null?"":v?"Yes":"No";
+  const result=r=> hasList
+    ? (r.scanned&&r.onList?"Matched":r.onList?"On inventory list, not scanned":r.scanned?"Scanned, not on inventory list":"In my stock only")
+    : (r.scanned&&r.inStock?"Matched":r.inStock?"In my stock, not scanned":"Scanned, not in my stock");
+  const order={"On inventory list, not scanned":0,"Scanned, not on inventory list":1,"In my stock, not scanned":2,"Scanned, not in my stock":3,"In my stock only":4,"Matched":5};
+  rows.sort((a,b)=>order[result(a)]-order[result(b)] || a.serial.localeCompare(b.serial));
+  const head=["Serial","Item","Result","Scanned","Scanned at","In my stock",...(hasList?["On inventory list"]:[]),"My last record"];
+  const aoa=[head, ...rows.map(r=>[r.serial,r.item,result(r),yn(r.scanned),r.scannedAt?new Date(r.scannedAt).toLocaleString():"",yn(r.inStock),...(hasList?[yn(r.onList)]:[]),r.note])];
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws["!cols"]=[22,32,30,8,20,10,...(hasList?[14]:[]),40].map(w=>({wch:w}));
+  ws["!autofilter"]={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:Math.max(1,aoa.length-1),c:head.length-1}})};
+  const info=XLSX.utils.aoa_to_sheet([["Technician",ME.name],["Dealership",ME.dealer],["Count started",new Date(COUNT.startedAt).toLocaleString()],["Saved",new Date().toLocaleString()],["Serials scanned",COUNT.items.length],["Compared with",hasList?COUNT.list.file:"My records only"]]);
+  info["!cols"]=[{wch:16},{wch:40}];
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Count"); XLSX.utils.book_append_sheet(wb,info,"About");
+  const d=new Date(COUNT.startedAt), stamp=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const who=ME.name.replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"");
+  const name=`Stock-Tracker-Count-${who?who+"-":""}${stamp}.xlsx`;
+  const file=new File([XLSX.write(wb,{bookType:"xlsx",type:"array"})], name, {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+  try{
+    await saveFile(file);
+    toast("Count file ready");
+  }catch(e){ if(!(e&&e.name==="AbortError")) toast("Couldn't create the count file. Try again."); }
+});
+
+/* continuous camera scanning: reads only the barcode under the red line */
+let LIVE={stream:null, timer:null, busy:false, last:"", lastAt:0, audio:null, reader:null};
+function beep(ok){
+  try{ const ctx=LIVE.audio; if(!ctx) return; const o=ctx.createOscillator(), g=ctx.createGain();
+    o.frequency.value=ok?1760:520; g.gain.value=.12; o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+(ok?.08:.18)); }catch(e){}
+}
+function liveFlash(cls){ const a=$("aim"); a.classList.remove("hit","dup"); void a.offsetWidth; a.classList.add(cls); setTimeout(()=>a.classList.remove(cls),450); }
+$("liveScanBtn").addEventListener("click",startLiveScan);
+$("liveDone").addEventListener("click",stopLiveScan);
+$("liveUndo").addEventListener("click",()=>{ if(!COUNT||!COUNT.items.length) return; const it=COUNT.items[0]; countRemove(it.key);
+  $("liveN").textContent=COUNT.items.length; $("liveLast").innerHTML=`<small>Removed</small><span class="mono">${esc(it.code)}</span>`; $("liveUndo").disabled=!COUNT.items.length; });
+async function startLiveScan(){
+  if(!window.ZXing){ toast("Scanner didn't load. Connect to the internet and reopen Stock Tracker."); return; }
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ toast("Live scanning isn't available here. Use the camera button to scan from a photo."); return; }
+  try{ LIVE.audio = LIVE.audio || new (window.AudioContext||window.webkitAudioContext)(); LIVE.audio.resume(); }catch(e){}
+  try{
+    LIVE.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}, width:{ideal:1920}, height:{ideal:1080}}, audio:false});
+  }catch(e){ toast(e&&e.name==="NotAllowedError" ? "Camera is blocked. Allow it in Settings › Safari › Camera." : "Couldn't start the camera."); return; }
+  const v=$("liveVideo"); v.srcObject=LIVE.stream; $("liveScanner").hidden=false;
+  try{ await v.play(); }catch(e){}
+  $("liveN").textContent=COUNT.items.length; $("liveUndo").disabled=!COUNT.items.length;
+  const Z=window.ZXing, BF=Z.BarcodeFormat, hints=new Map();
+  hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[BF.CODE_128,BF.CODE_39,BF.CODE_93,BF.EAN_13,BF.UPC_A,BF.ITF,BF.DATA_MATRIX,BF.QR_CODE].filter(x=>x!==undefined));
+  LIVE.reader=new Z.MultiFormatReader(); LIVE.reader.setHints(hints);
+  const c=document.createElement("canvas"), g=c.getContext("2d",{willReadFrequently:true});
+  LIVE.timer=setInterval(()=>{
+    if(LIVE.busy || !v.videoWidth) return; LIVE.busy=true;
+    try{
+      // map the on-screen aim box to the video frame (video is object-fit: cover)
+      const vw=v.videoWidth, vh=v.videoHeight, ew=v.clientWidth, eh=v.clientHeight;
+      const sc=Math.max(ew/vw, eh/vh), ox=(vw*sc-ew)/2, oy=(vh*sc-eh)/2;
+      const ar=$("aim").getBoundingClientRect(), vr=v.getBoundingClientRect();
+      let sx=(ar.left-vr.left+ox)/sc, sy=(ar.top-vr.top+oy)/sc, sw=ar.width/sc, sh=ar.height/sc;
+      const k=Math.min(1, 1000/sw); c.width=Math.round(sw*k); c.height=Math.round(sh*k);
+      g.drawImage(v, sx, sy, sw, sh, 0, 0, c.width, c.height);
+      const r=LIVE.reader.decodeWithState(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(c))));
+      onLiveCode(r.getText());
+    }catch(e){ /* nothing readable in this frame */ }
+    finally{ LIVE.busy=false; }
+  }, 180);
+}
+function onLiveCode(text){
+  const now=Date.now(); text=String(text||"").trim(); if(!text) return;
+  if(text===LIVE.last && now-LIVE.lastAt<2500) return;   // same label still in view
+  LIVE.last=text; LIVE.lastAt=now;
+  const res=countAdd(text), note=recordNote(keyOf(text));
+  if(res==="added"){ beep(true); liveFlash("hit");
+    $("liveLast").innerHTML=`<span class="mono">${esc(text)}</span><small>${esc(note.item||note.text)}</small>`; }
+  else if(res==="dup"){ beep(false); liveFlash("dup"); $("liveLast").innerHTML=`<span class="mono">${esc(text)}</span><small>Already counted</small>`; }
+  $("liveN").textContent=COUNT.items.length; $("liveUndo").disabled=!COUNT.items.length;
+}
+function stopLiveScan(){
+  clearInterval(LIVE.timer); LIVE.timer=null;
+  if(LIVE.stream){ LIVE.stream.getTracks().forEach(t=>t.stop()); LIVE.stream=null; }
+  $("liveVideo").srcObject=null; $("liveScanner").hidden=true;
+}
+document.addEventListener("visibilitychange",()=>{ if(document.hidden) stopLiveScan(); });
+
+/* ---------- home screen tip ---------- */
+const standalone = window.navigator.standalone===true || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
+$("homeTip").hidden = standalone;
+
+/* ---------- offline support ---------- */
+if("serviceWorker" in navigator && location.protocol==="https:"){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+
+/* ---------- boot ---------- */
+function renderAll(){ STOCK=computeStock(); renderStock(); renderHistory(); syncForm(); paintBackup(); renderCount(); }
+paintHeader(); showSetup(); paintLoc(); setType("receive"); renderAll();
+try{ const t=sessionStorage.getItem("techstock.tab"); if(t && $("p-"+t)) setTab(t); }catch(e){}
+})();
+</script>
+</body>
+</html>
