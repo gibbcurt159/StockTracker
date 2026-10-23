@@ -228,6 +228,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .file-pick input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .kv-plain{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.92rem}
 .kv-plain dt{color:var(--muted)}
+.ser-link{border:0;background:none;padding:0;text-align:left;color:inherit;flex:1;min-width:0;overflow-wrap:anywhere;text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer}
 .kv-plain dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
 .tabs-in{--n:5}
 .setup{position:fixed;inset:0;z-index:80;background:var(--bg);overflow:auto;display:flex;flex-direction:column}
@@ -260,7 +261,19 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
 .crow .x{border:0;background:transparent;color:var(--muted);width:32px;height:32px;border-radius:50%;flex:none}
 /* live scanner */
 .scanner{position:fixed;inset:0;z-index:70;background:#000;display:flex;flex-direction:column;color:#fff}
-.scanner video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.scanner video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:center center}
+.scanner{touch-action:none;-webkit-user-select:none;user-select:none}
+.zoom-row{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.55);border-radius:12px;padding:8px 10px}
+.zoom-row input{flex:1;min-width:0;accent-color:#58C774;touch-action:none}
+.zoom-row button{border:0;background:rgba(255,255,255,.16);color:#fff;border-radius:99px;padding:7px 10px;font-weight:600;font-size:.82rem;flex:none}
+.zoom-row button[aria-pressed="true"]{background:#58C774;color:#06301A}
+.scan-actions{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:8px}
+.scan-actions.two{grid-template-columns:1fr 1.5fr}
+.scanner .shutter{padding:16px 10px;font-size:1.1rem}
+.scanner .btn:disabled{opacity:.4}
+.scan-last.pending{background:rgba(255,255,255,.94);color:#0E2A27}
+.scan-last.pending .warn{color:#B4400E;font-weight:600}
+#zoomLbl{min-width:3em;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-size:.9rem}
 .aim{position:absolute;left:8%;right:8%;top:50%;height:22%;transform:translateY(-50%);border:2px solid rgba(255,255,255,.85);border-radius:12px;box-shadow:0 0 0 100vmax rgba(0,0,0,.45);transition:border-color .15s}
 .aim::after{content:"";position:absolute;left:6%;right:6%;top:50%;height:2px;background:#ff5a4e;opacity:.9}
 .aim.hit{border-color:#58C774;border-width:3px}
@@ -495,9 +508,15 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
   <div class="aim" id="aim"></div>
   <div class="scan-top"><b id="liveTitle">Counting</b><span class="scan-n" id="liveN">0</span></div>
   <div class="scan-bot">
-    <div class="scan-hint" id="liveHint">Line up the red line with the serial number barcode.</div>
+    <div class="scan-hint" id="liveHint">Pinch to zoom.</div>
+    <div class="zoom-row" id="zoomRow" aria-label="Camera zoom">
+      <button type="button" data-z="1">1×</button><button type="button" data-z="2">2×</button><button type="button" data-z="3">3×</button>
+      <input type="range" id="zoomRange" min="1" max="4" step="0.1" value="1" aria-label="Zoom">
+      <span id="zoomLbl">1.0×</span>
+    </div>
     <div class="scan-last" id="liveLast"><small>Scanned serials show here</small></div>
-    <div class="row"><button class="btn block" type="button" id="liveUndo" disabled>Undo Last</button><button class="btn primary block" type="button" id="liveDone">Done</button></div>
+    <div class="scan-actions" id="liveScanRow"><button class="btn" type="button" id="liveUndo" disabled>Undo Last</button><button class="btn primary shutter" type="button" id="liveShoot">Scan</button><button class="btn" type="button" id="liveDone">Done</button></div>
+    <div class="scan-actions two" id="liveConfirmRow" hidden><button class="btn" type="button" id="liveRetry">Retry</button><button class="btn primary shutter" type="button" id="liveAccept">Accept</button></div>
   </div>
 </div>
 <input type="file" id="listIn" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden>
@@ -601,7 +620,7 @@ const HELP = {
 const newId=()=>"e"+Date.now().toString(36)+Math.random().toString(36).slice(2,10);
 
 /* ---------- storage: this phone only ---------- */
-const K = {events:"techstock.events", me:"techstock.me", backup:"techstock.lastBackup", backupIds:"techstock.backupCount"};
+const K = {deleted:"techstock.deleted", events:"techstock.events", me:"techstock.me", backup:"techstock.lastBackup", backupIds:"techstock.backupCount"};
 function lsGet(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
 function lsSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } }
 const Store = {
@@ -614,6 +633,13 @@ const Store = {
   voidEvent(id, reason){
     const e=this.events.find(x=>x.id===id); if(!e) return false;
     Object.assign(e,{voided:true, voidReason:reason||"", voidedAt:Date.now()}); return this.persist();
+  },
+  /* Delete for good. The id is remembered so restoring an older backup on this phone can't bring it back. */
+  deleted: new Set(lsGet(K.deleted, [])),
+  deleteEvent(id){
+    const i=this.events.findIndex(x=>x.id===id); if(i<0) return false;
+    this.events.splice(i,1); this.deleted.add(id);
+    lsSet(K.deleted, [...this.deleted]); return this.persist();
   }
 };
 Store.events.sort((a,b)=>b.ts-a.ts);
@@ -692,7 +718,7 @@ function renderStock(){
     const showItems = q && !nameHit ? matchItems : items;
     const open = q && matchItems.length && !nameHit ? " open" : "";
     const body = s.serial
-      ? (showItems.length ? showItems.map(i=>`<div class="srow"><span class="mono">${esc(i.serial)}</span><small>${fmtDate(i.ts)}</small>
+      ? (showItems.length ? showItems.map(i=>`<div class="srow"><button type="button" class="mono ser-link" data-ser="${esc(i.key)}">${esc(i.serial)}</button><small>${fmtDate(i.ts)}</small>
           <button class="mini t-deploy" data-act="deploy" data-sku="${s.id}" data-serial="${esc(i.serial)}">Deploy</button>
           <button class="mini t-transfer" data-act="transfer" data-sku="${s.id}" data-serial="${esc(i.serial)}">Transfer</button></div>`).join("")
         : `<div class="srow muted">None in stock</div>`)
@@ -941,6 +967,8 @@ function renderHistory(){
   });
   list.innerHTML=html;
 }
+$("stockList").addEventListener("click",e=>{ const b=e.target.closest("[data-ser]"); if(!b) return;
+  const ev=Store.events.find(x=>x.serialKey===b.dataset.ser); if(ev) openDetail(ev.id); });
 $("histList").addEventListener("click",e=>{ const b=e.target.closest("[data-ev]"); if(b) openDetail(b.dataset.ev); });
 
 function openDetail(id){
@@ -961,8 +989,19 @@ function openDetail(id){
       ${e.note?`<dt>Note</dt><dd>${esc(e.note)}</dd>`:""}
       ${e.voided?`<dt>Voided</dt><dd>${e.voidedAt?esc(fmtFull(e.voidedAt)):"Yes"}${e.voidReason?" · "+esc(e.voidReason):""}</dd>`:""}
     </dl>
-    ${!e.voided ? `<div id="voidArea"><button class="btn danger block" id="voidStart" type="button">Void This Entry</button></div>`:""}`;
+    <div id="voidArea">${!e.voided ? `<button class="btn danger block" id="voidStart" type="button">Void This Entry</button>`:""}
+      <button class="btn ghost block" id="delStart" type="button" style="color:var(--warn)">Delete Entry</button></div>`;
   $("detailSheet").hidden=false;
+  $("delStart").addEventListener("click",()=>{
+    const what = e.serial ? `serial ${e.serial}` : `${e.qty} × ${l.name}`;
+    $("voidArea").innerHTML=`<div class="card" role="alertdialog" aria-labelledby="delQ"><b id="delQ">Delete this entry for good?</b>
+      <p style="margin:0;font-size:.92rem">${esc((TYPES[e.type]||{label:e.type}).label)} · ${esc(what)} · ${esc(fmtFull(e.ts))}</p>
+      <p class="muted" style="margin:0;font-size:.85rem">It's removed from your stock and history and won't be in future backups. This can't be undone. If you might need proof of it later, void it instead.</p>
+      <div class="row"><button class="btn block" type="button" data-close="detailSheet">Cancel</button><button class="btn danger block" type="button" id="delGo">Delete Permanently</button></div></div>`;
+    $("delGo").addEventListener("click",()=>{
+      if(Store.deleteEvent(e.id)){ $("detailSheet").hidden=true; toast("Entry deleted"); renderAll(); }
+    });
+  });
   const vs=$("voidStart");
   if(vs) vs.addEventListener("click",()=>{
     $("voidArea").innerHTML=`<div class="card"><div class="field"><label for="voidReason">Why are you voiding it?</label>
@@ -1119,15 +1158,16 @@ $("restoreIn").addEventListener("change",async()=>{
   try{
     const {entries, skipped}=parseBackup(await f.arrayBuffer());
     const byId=new Map(Store.events.map(e=>[e.id,e]));
-    let added=0, updated=0;
+    let added=0, updated=0, gone=0;
     entries.forEach(e=>{
+      if(Store.deleted.has(e.id)){ gone++; return; }
       const have=byId.get(e.id);
       if(!have){ Store.events.push(e); added++; }
       else if(e.voided && !have.voided){ Object.assign(have,{voided:true, voidReason:e.voidReason, voidedAt:e.voidedAt}); updated++; }
     });
     Store.events.sort((a,b)=>b.ts-a.ts);
     if(!Store.persist()) throw new Error("This phone is out of space for Stock Tracker data.");
-    msg.innerHTML=`<div class="note info">Restored <b>${added}</b> entr${added===1?"y":"ies"}${updated?`, updated ${updated} voided`:""}. ${entries.length-added} ${entries.length-added===1?"was":"were"} already on this phone.${skipped?` ${skipped} row${skipped===1?"":"s"} couldn't be read and ${skipped===1?"was":"were"} skipped.`:""}</div>`;
+    msg.innerHTML=`<div class="note info">Restored <b>${added}</b> entr${added===1?"y":"ies"}${updated?`, updated ${updated} voided`:""}. ${entries.length-added-gone} ${entries.length-added-gone===1?"was":"were"} already on this phone.${gone?` ${gone} you deleted ${gone===1?"was":"were"} left out.`:""}${skipped?` ${skipped} row${skipped===1?"":"s"} couldn't be read and ${skipped===1?"was":"were"} skipped.`:""}</div>`;
     if(added && !lsGet(K.backup,null)){ lsSet(K.backup, f.lastModified||Date.now()); lsSet(K.backupIds, Store.events.length); }
     toast(added?`Restored ${added} entries`:"Already up to date");
     renderAll();
@@ -1310,8 +1350,51 @@ $("liveUndo").addEventListener("click",()=>{
   let code="";
   if(LIVE.mode==="log"){ if(!F.serials.length) return; code=F.serials.pop(); syncForm(); }
   else { if(!COUNT||!COUNT.items.length) return; const it=COUNT.items[0]; code=it.code; countRemove(it.key); }
-  LIVE.last=""; $("liveLast").innerHTML=`<small>Removed</small><span class="mono">${esc(code)}</span>`; paintLiveCount();
+  showScanRow(`<small>Removed</small><span class="mono">${esc(code)}</span>`);
 });
+/* Camera zoom. Uses the camera's own zoom where the phone offers it (most Android phones);
+   otherwise enlarges the picture. Only the camera view zooms, never the buttons or text. */
+LIVE.zoom=1; LIVE.dz=1; LIVE.hw=null; LIVE.pinch=null;
+const ZMIN=()=>LIVE.hw?Math.max(1,LIVE.hw.min):1, ZMAX=()=>LIVE.hw?LIVE.hw.max:4;
+function setupZoom(){
+  LIVE.hw=null;
+  try{
+    const track=LIVE.stream.getVideoTracks()[0];
+    const caps=track.getCapabilities ? track.getCapabilities() : {};
+    if(caps.zoom && caps.zoom.max>caps.zoom.min) LIVE.hw={track, min:caps.zoom.min, max:Math.min(caps.zoom.max,8)};
+  }catch(e){}
+  $("zoomRange").min=ZMIN(); $("zoomRange").max=ZMAX();
+  applyZoom(LIVE.zoom);
+}
+let zoomBusy=false, zoomNext=null;
+async function applyZoom(z){
+  z=Math.min(ZMAX(), Math.max(ZMIN(), Number(z)||1)); LIVE.zoom=z;
+  $("zoomLbl").textContent=z.toFixed(1)+"×"; $("zoomRange").value=z;
+  document.querySelectorAll("#zoomRow [data-z]").forEach(b=>b.setAttribute("aria-pressed", Math.abs(Number(b.dataset.z)-z)<0.05?"true":"false"));
+  if(LIVE.hw){
+    if(zoomBusy){ zoomNext=z; return; }
+    zoomBusy=true;
+    try{ await LIVE.hw.track.applyConstraints({advanced:[{zoom:z}]}); LIVE.dz=1; }
+    catch(e){ LIVE.hw=null; $("zoomRange").max=4; }
+    zoomBusy=false;
+    if(zoomNext!==null){ const n=zoomNext; zoomNext=null; if(n!==z) return applyZoom(n); }
+  }
+  if(!LIVE.hw) LIVE.dz=z;
+  $("liveVideo").style.transform = LIVE.dz>1 ? `scale(${LIVE.dz})` : "";
+}
+$("zoomRange").addEventListener("input",()=>applyZoom($("zoomRange").value));
+$("zoomRow").addEventListener("click",e=>{ const b=e.target.closest("[data-z]"); if(b) applyZoom(b.dataset.z); });
+// two-finger pinch on the camera view zooms the camera; the page itself never zooms while scanning
+const tdist=t=>Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY);
+$("liveScanner").addEventListener("touchstart",e=>{ if(e.touches.length===2){ LIVE.pinch={d:tdist(e.touches), z:LIVE.zoom}; e.preventDefault(); } },{passive:false});
+$("liveScanner").addEventListener("touchmove",e=>{
+  if(e.touches.length>=2){ e.preventDefault(); if(LIVE.pinch) applyZoom(LIVE.pinch.z*tdist(e.touches)/LIVE.pinch.d); }
+},{passive:false});
+$("liveScanner").addEventListener("touchend",e=>{ if(e.touches.length<2) LIVE.pinch=null; });
+["gesturestart","gesturechange","gestureend"].forEach(t=>document.addEventListener(t,e=>{ if(!$("liveScanner").hidden) e.preventDefault(); },{passive:false}));
+let lastTap=0;
+$("liveScanner").addEventListener("touchend",e=>{ const n=Date.now(); if(n-lastTap<300 && !e.target.closest("button,input")) e.preventDefault(); lastTap=n; },{passive:false});
+
 async function makeDetector(){
   if(!("BarcodeDetector" in window)) return null;
   try{
@@ -1336,60 +1419,92 @@ async function startLiveScan(mode){
   }
   const v=$("liveVideo"); v.srcObject=LIVE.stream;
   $("liveTitle").textContent = LIVE.mode==="log" ? TYPES[F.type].title : "Counting";
-  $("liveHint").textContent = LIVE.mode==="log" && F.type==="deploy" ? "Line up the red line with the serial number barcode. The scanner closes after one unit."
-                                                                    : "Line up the red line with each serial number barcode.";
-  $("liveLast").innerHTML=`<small>Scanned serials show here</small>`; LIVE.last="";
+  $("liveHint").textContent = LIVE.mode==="log" && F.type==="deploy" ? "Pinch to zoom. Closes after you accept one unit." : "Pinch to zoom. Scan and accept each unit, then tap Done.";
   $("liveScanner").hidden=false;
   try{ await v.play(); }catch(e){}
-  paintLiveCount();
-  const c=document.createElement("canvas"), g=c.getContext("2d",{willReadFrequently:true});
-  LIVE.timer=setInterval(async()=>{
-    if(LIVE.busy || !v.videoWidth || !LIVE.stream) return; LIVE.busy=true;
-    try{
-      // map the on-screen aim box to the video frame (video is object-fit: cover)
-      const vw=v.videoWidth, vh=v.videoHeight, ew=v.clientWidth, eh=v.clientHeight;
-      const sc=Math.max(ew/vw, eh/vh), ox=(vw*sc-ew)/2, oy=(vh*sc-eh)/2;
-      const ar=$("aim").getBoundingClientRect(), vr=v.getBoundingClientRect();
-      const sx=(ar.left-vr.left+ox)/sc, sy=(ar.top-vr.top+oy)/sc, sw=ar.width/sc, sh=ar.height/sc;
-      const k=Math.min(1, 1000/sw); c.width=Math.round(sw*k); c.height=Math.round(sh*k);
-      g.drawImage(v, sx, sy, sw, sh, 0, 0, c.width, c.height);
-      if(LIVE.bd){
-        const r=await LIVE.bd.detect(c);
-        if(r && r.length) onLiveCode(r[0].rawValue);
-      } else {
-        const Z=window.ZXing;
-        const r=LIVE.reader.decodeWithState(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(c))));
-        onLiveCode(r.getText());
-      }
-    }catch(e){ /* nothing readable in this frame */ }
-    finally{ LIVE.busy=false; }
-  }, 150);
+  setupZoom();
+  showScanRow(`<small>Put the red line on the serial barcode, then tap Scan.</small>`);
 }
-function onLiveCode(text){
-  const now=Date.now(); text=String(text||"").trim(); if(!text || !LIVE.stream) return;
-  if(text===LIVE.last && now-LIVE.lastAt<2500) return;   // same label still in view
-  LIVE.last=text; LIVE.lastAt=now;
-  if(LIVE.mode==="log"){
-    if(F.serials.some(x=>keyOf(x)===keyOf(text))){ beep(false); liveFlash("dup"); $("liveLast").innerHTML=`<span class="mono">${esc(text)}</span><small>Already on this list</small>`; return; }
-    addSerial(text);
-    const s=SKU[$("skuSel").value], rec=STOCK.serials.get(keyOf(text));
-    const warn = F.type==="receive" && rec && rec.inStock ? "Already in your stock" : F.type!=="receive" && !(rec && rec.inStock) ? "Not in your stock records" : "";
-    beep(!warn); liveFlash(warn?"dup":"hit");
-    $("liveLast").innerHTML=`<span class="mono">${esc(text)}</span><small>${esc([s?s.name:"Item not recognized, pick it after",warn].filter(Boolean).join(" · "))}</small>`;
-    paintLiveCount();
-    if(F.type==="deploy") setTimeout(stopLiveScan, 700);
+
+/* read whatever barcode is under the red line right now (one frame) */
+const LCV=document.createElement("canvas"), LCG=LCV.getContext("2d",{willReadFrequently:true});
+async function readAim(){
+  const v=$("liveVideo"); if(!v.videoWidth || !LIVE.stream) return null;
+  // map the on-screen aim box to the video frame (video is object-fit: cover)
+  const vw=v.videoWidth, vh=v.videoHeight, ew=v.clientWidth, eh=v.clientHeight;
+  const sc=Math.max(ew/vw, eh/vh), ox=(vw*sc-ew)/2, oy=(vh*sc-eh)/2;
+  const ar=$("aim").getBoundingClientRect(), vr=v.getBoundingClientRect(); // vr includes any on-screen enlargement
+  const dz=LIVE.dz||1; // undo on-screen enlargement so the crop still matches the red line
+  const sx=((ar.left-vr.left)/dz+ox)/sc, sy=((ar.top-vr.top)/dz+oy)/sc, sw=ar.width/dz/sc, sh=ar.height/dz/sc;
+  const k=Math.min(1, 1000/sw); LCV.width=Math.round(sw*k); LCV.height=Math.round(sh*k);
+  LCG.drawImage(v, sx, sy, sw, sh, 0, 0, LCV.width, LCV.height);
+  try{
+    if(LIVE.bd){ const r=await LIVE.bd.detect(LCV); return r && r.length ? String(r[0].rawValue||"").trim()||null : null; }
+    const Z=window.ZXing;
+    const r=LIVE.reader.decodeWithState(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(LCV))));
+    return String(r.getText()||"").trim()||null;
+  }catch(e){ return null; }
+}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+function showScanRow(msg){
+  LIVE.pending=null;
+  $("liveConfirmRow").hidden=true; $("liveScanRow").hidden=false; $("liveShoot").disabled=false; $("liveShoot").textContent="Scan";
+  $("liveLast").classList.remove("pending");
+  if(msg!=null) $("liveLast").innerHTML=msg;
+  paintLiveCount();
+}
+
+/* Scan button: try for up to 2 seconds to read the barcode under the line, then ask to accept */
+$("liveShoot").addEventListener("click",async()=>{
+  if(LIVE.busy || !LIVE.stream) return; LIVE.busy=true;
+  $("liveShoot").disabled=true; $("liveShoot").textContent="Reading…";
+  $("liveLast").innerHTML=`<small>Hold steady…</small>`;
+  let text=null; const end=Date.now()+2000;
+  while(!text && Date.now()<end && LIVE.stream){ text=await readAim(); if(!text) await sleep(90); }
+  LIVE.busy=false;
+  if(!LIVE.stream) return;
+  if(!text){
+    beep(false); liveFlash("dup");
+    showScanRow(`<span>No barcode under the red line.</span><small>Move closer or zoom in, keep it steady, then tap Scan again.</small>`);
     return;
   }
-  const res=countAdd(text), note=recordNote(keyOf(text));
-  if(res==="added"){ beep(true); liveFlash("hit");
-    $("liveLast").innerHTML=`<span class="mono">${esc(text)}</span><small>${esc(note.item||note.text)}</small>`; }
-  else if(res==="dup"){ beep(false); liveFlash("dup"); $("liveLast").innerHTML=`<span class="mono">${esc(text)}</span><small>Already counted</small>`; }
-  paintLiveCount();
-}
+  LIVE.pending=text; liveFlash("hit");
+  const key=keyOf(text);
+  let item="", warn="", blocked=false;
+  if(LIVE.mode==="log"){
+    if(F.serials.some(x=>keyOf(x)===key)){ warn="Already on this list"; blocked=true; }
+    else{
+      const rec=STOCK.serials.get(key), g=guessSku(text), cur=SKU[$("skuSel").value];
+      item = g ? SKU[g.sku].name : cur ? cur.name : "Item not recognized. Pick it after.";
+      warn = F.type==="receive" && rec && rec.inStock ? "Already in your stock" : F.type!=="receive" && !(rec && rec.inStock) ? "Not in your stock records" : "";
+    }
+  } else {
+    if(COUNT && COUNT.items.some(i=>i.key===key)){ warn="Already counted"; blocked=true; }
+    else{ const note=recordNote(key); item=note.item||""; warn=note.text==="No record on this phone"?"No record on this phone":""; }
+  }
+  $("liveLast").classList.add("pending");
+  $("liveLast").innerHTML=`<span class="mono">${esc(text)}</span>${item?`<small>${esc(item)}</small>`:""}${warn?`<small class="warn">${esc(warn)}</small>`:""}`;
+  $("liveScanRow").hidden=true; $("liveConfirmRow").hidden=false;
+  $("liveAccept").disabled=blocked;
+});
+$("liveRetry").addEventListener("click",()=>showScanRow(`<small>Put the red line on the serial barcode, then tap Scan.</small>`));
+$("liveAccept").addEventListener("click",()=>{
+  const text=LIVE.pending; if(!text) return;
+  if(LIVE.mode==="log"){
+    addSerial(text); beep(true);
+    const s=SKU[$("skuSel").value];
+    showScanRow(`<small>Added</small><span class="mono">${esc(text)}</span>${s?`<small>${esc(s.name)}</small>`:""}`);
+    if(F.type==="deploy") setTimeout(stopLiveScan, 400);
+  } else {
+    countAdd(text); beep(true);
+    showScanRow(`<small>Counted</small><span class="mono">${esc(text)}</span>`);
+  }
+});
 function stopLiveScan(){
-  clearInterval(LIVE.timer); LIVE.timer=null;
+  LIVE.pending=null; LIVE.busy=false;
   if(LIVE.stream){ LIVE.stream.getTracks().forEach(t=>t.stop()); LIVE.stream=null; }
-  $("liveVideo").srcObject=null; $("liveScanner").hidden=true;
+  $("liveVideo").srcObject=null; $("liveVideo").style.transform=""; LIVE.hw=null; LIVE.pinch=null; $("liveScanner").hidden=true;
 }
 document.addEventListener("visibilitychange",()=>{ if(document.hidden) stopLiveScan(); });
 
