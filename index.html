@@ -13,6 +13,7 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
+<script>try{var t=localStorage.getItem("techstock.theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
@@ -114,6 +115,20 @@ input:focus,select:focus,textarea:focus{outline:none;box-shadow:inset 0 0 0 2px 
 .seg button{border:0;background:transparent;border-radius:9px;padding:8px 0 7px;font-weight:600;font-size:.8rem;min-width:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px}
 .seg button i{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-style:normal;background:var(--tb);color:var(--tc)}
 .seg button i svg{width:16px;height:16px}
+.theme-seg{grid-template-columns:repeat(3,1fr)}
+.line{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg)}
+.line-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.line-main b{font-weight:600;line-height:1.25}
+.line-main .mono{overflow-wrap:anywhere}
+.line-main small{font-size:.8rem;color:var(--muted)}
+.line-main small.warn{color:var(--warn)}
+.line .x{border:0;background:transparent;color:var(--muted);width:32px;height:32px;border-radius:50%;flex:none}
+.line .chips{flex-wrap:wrap;overflow:visible}
+.line .chips button{flex:0 1 auto;white-space:normal;text-align:left;max-width:100%}
+.qty.sm button{width:34px;height:34px;font-size:1.1rem}
+.qty.sm span{min-width:2ch;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
+.lines-empty{border:1px dashed var(--line);border-radius:10px;padding:14px;text-align:center;color:var(--muted);font-size:.9rem}
+.theme-seg button{padding:10px 0;font-size:.9rem}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--tc);box-shadow:var(--shadow)}
 
 .card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;display:flex;flex-direction:column;gap:14px}
@@ -206,7 +221,7 @@ dl.kv a{color:var(--brand-2);font-weight:600}
 .spinner{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--brand-2);animation:spin .8s linear infinite;flex:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-weight:600;font-size:.9rem;max-width:calc(100% - 32px);box-shadow:var(--shadow)}
+.toast{border-radius:14px!important;text-align:center;position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-weight:600;font-size:.9rem;max-width:calc(100% - 32px);box-shadow:var(--shadow)}
 @media (prefers-reduced-motion:reduce){.spinner{animation-duration:3s}}
 @media (max-width:380px){.qa{font-size:.72rem}.seg button{font-size:.74rem}}
 .backup{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:var(--r);padding:12px 14px;box-shadow:var(--shadow)}
@@ -312,13 +327,6 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
 <main>
   <!-- STOCK -->
   <section class="panel" id="p-stock">
-    <div class="quick" id="quick">
-      <button class="qa t-receive" data-quick="receive"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 4v12M6 10l6 6 6-6M5 20h14"/></svg></i>Receive</button>
-      <button class="qa t-deploy" data-quick="deploy"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9H3z"/><path d="M9 20v-6h6v6"/></svg></i>Deploy</button>
-      <button class="qa t-transfer" data-quick="transfer"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h14l-4-4M20 16H6l4 4"/></svg></i>Transfer</button>
-      <button class="qa t-rma" data-quick="rma"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 010 10h-3"/></svg></i>RMA</button>
-      <button class="qa t-recycle" data-quick="recycle"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></i>Recycle</button>
-    </div>
     <div class="summary">
       <div class="stat"><b id="st-ser" class="num">0</b><span>Serialized units</span></div>
       <div class="stat"><b id="st-non" class="num">0</b><span>Mounts &amp; parts</span></div>
@@ -338,16 +346,33 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
 
   <!-- LOG -->
   <section class="panel" id="p-log" hidden>
-    <h2 id="logTitle">Receive items</h2>
+    <h2 id="logTitle">Deploy to a customer</h2>
     <div class="seg" id="typeSeg" role="group" aria-label="Action">
-      <button class="t-receive" data-type="receive">Receive</button>
-      <button class="t-deploy" data-type="deploy">Deploy</button>
-      <button class="t-transfer" data-type="transfer">Transfer</button>
-      <button class="t-rma" data-type="rma">RMA</button>
-      <button class="t-recycle" data-type="recycle">Recycle</button>
+      <button class="t-receive" data-type="receive"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 4v12M6 10l6 6 6-6M5 20h14"/></svg></i>Receive</button>
+      <button class="t-deploy" data-type="deploy"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9H3z"/><path d="M9 20v-6h6v6"/></svg></i>Deploy</button>
+      <button class="t-transfer" data-type="transfer"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h14l-4-4M20 16H6l4 4"/></svg></i>Transfer</button>
+      <button class="t-rma" data-type="rma"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 010 10h-3"/></svg></i>RMA</button>
+      <button class="t-recycle" data-type="recycle"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></i>Recycle</button>
     </div>
     <form class="card" id="logForm" novalidate>
-      <div class="field">
+      <div class="field" id="accountBlock" hidden>
+        <label for="accountIn">Customer account number</label>
+        <input type="text" id="accountIn" inputmode="numeric" autocomplete="off" placeholder="Account deployed at" class="mono">
+      </div>
+      <div class="field" id="deployBlock" hidden>
+        <span class="lbl">Item</span>
+        <div class="list" id="lineList"></div>
+        <button type="button" class="btn brand block" id="dScanBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><path d="M8 8v8M11 8v8M14 8v8M17 8v8"/></svg>
+          <span id="dScanLbl">Scan Item</span></button>
+        <div class="row">
+          <input type="text" id="dSerialIn" placeholder="Or type a serial" autocomplete="off" autocapitalize="characters" spellcheck="false" class="mono">
+          <button type="button" class="btn" id="dAddSerial">Add</button>
+        </div>
+        <select id="dItemSel" aria-label="Pick an item without a serial"></select>
+        <button type="button" class="btn ghost" id="dPhotoBtn" style="align-self:center">Camera won't open? Scan from a photo</button>
+        <div id="jobList"></div>
+      </div>
+      <div class="field" id="itemBlock">
         <label for="skuSel">Item</label>
         <select id="skuSel"></select>
         <div id="skuPick" class="field" hidden></div>
@@ -374,10 +399,6 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
           <button type="button" id="qtyPlus" aria-label="Increase">+</button>
         </div>
         <div id="qtyWarn"></div>
-      </div>
-      <div class="field" id="accountBlock" hidden>
-        <label for="accountIn">Customer account number</label>
-        <input type="text" id="accountIn" inputmode="numeric" autocomplete="off" placeholder="Account deployed at" class="mono">
       </div>
       <div class="field" id="toBlock" hidden>
         <label for="toIn">Transferred to</label>
@@ -452,16 +473,24 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
     </div>
   </section>
 
-  <!-- BACKUP -->
+  <!-- ADMIN -->
   <section class="panel" id="p-backup" hidden>
-    <h2>Backup &amp; restore</h2>
+    <h2>Admin</h2>
     <div class="card">
       <h3>Your details</h3>
       <div class="field"><label for="nameIn">Your name</label>
         <input type="text" id="nameIn" autocomplete="name" placeholder="First and last name"></div>
       <div class="field"><label for="dealerIn">Dealership</label>
         <input type="text" id="dealerIn" autocomplete="organization" placeholder="Dealership name"></div>
-      <p class="muted" style="margin:0;font-size:.85rem">Your name and dealership go on your backup and count files.</p>
+      <p class="muted" style="margin:0;font-size:.85rem">Your name and dealership go on your Google Sheet and Excel files.</p>
+    </div>
+    <div class="card">
+      <h3>Appearance</h3>
+      <div class="seg theme-seg" id="themeSeg" role="group" aria-label="Theme">
+        <button class="t-count" type="button" data-theme-pick="system">System</button>
+        <button class="t-count" type="button" data-theme-pick="light">Light</button>
+        <button class="t-count" type="button" data-theme-pick="dark">Dark</button>
+      </div>
     </div>
     <div class="card" id="gsCard">
       <div class="cmp-head"><h3>Google Sheets</h3><span class="pill t-count" id="gsPill">Off</span></div>
@@ -470,21 +499,8 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
     </div>
     <div class="card">
       <h3>Export to Excel</h3>
-      <p class="muted" style="margin:0;font-size:.9rem">Save a copy of your history and what's on hand as an Excel file for your own records.</p>
-      <dl class="kv-plain">
-        <dt>Entries on this phone</dt><dd id="bkCount">0</dd>
-        <dt>Last export</dt><dd id="bkLast">Never</dd>
-      </dl>
+      <p class="muted" style="margin:0;font-size:.9rem">Save a copy of your history and what's on hand for your own records.</p>
       <button class="btn block" type="button" data-backup>Export to Excel</button>
-      <ol class="steps" id="bkSteps"></ol>
-    </div>
-    <div class="card">
-      <h3>Restore from Excel</h3>
-      <p class="muted" style="margin:0;font-size:.9rem">Load an Excel file exported from Stock Tracker. Missing entries come back and nothing gets doubled up. With Google Sheets connected, a new phone gets your entries back as soon as you connect.</p>
-      <p class="muted" style="margin:0;font-size:.85rem" id="restoreHow"></p>
-      <label class="btn brand block file-pick" for="restoreIn">Choose Excel File
-        <input type="file" id="restoreIn" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
-      <div id="restoreMsg"></div>
     </div>
     <div class="note info" id="homeTip"></div>
   </section>
@@ -496,7 +512,7 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
     <button role="tab" data-tab="log" class="log-tab"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>Log</button>
     <button role="tab" data-tab="history"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>History</button>
     <button role="tab" data-tab="count"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5M8.5 11l2 2 4-4M8.5 17h7"/></svg>Count</button>
-    <button role="tab" data-tab="backup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a5 5 0 01-.6-9.96A6 6 0 0118 9a4.5 4.5 0 01-.5 9H7z"/><path d="M12 11v6M9.5 13.5L12 11l2.5 2.5"/></svg>Backup</button>
+    <button role="tab" data-tab="backup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Admin</button>
   </div>
 </nav>
 
@@ -547,7 +563,7 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
       <input type="text" id="setupDealer" autocomplete="organization" placeholder="Dealership name"></div>
     <div id="setupErr"></div>
     <button class="btn primary block" type="submit">Get Started</button>
-    <p class="muted" style="margin:0;font-size:.88rem">Setting up a new phone? Start here, then restore your backup file on the Backup tab.</p>
+    <p class="muted" style="margin:0;font-size:.88rem">Setting up a new phone? Start here, then connect Google Sheets on the Admin tab to get your entries back.</p>
   </form>
 </div>
 
@@ -645,7 +661,7 @@ const LEGACY_SKU = {"adtran-router":"854-V6","adtran-ext":"834-V6","cat12-b42":"
 const SKU = Object.fromEntries(SKUS.map(s=>[s.id,s]));
 const TYPES = {
   receive: {label:"Received",    title:"Receive items",        save:"Log Received Items"},
-  deploy:  {label:"Deployed",    title:"Deploy to a customer", save:"Log Deployment"},
+  deploy:  {label:"Deployed",    title:"Deploy to a customer", save:"Deploy Item"},
   transfer:{label:"Transferred", title:"Transfer to another tech",   save:"Log Transfer"},
   rma:     {label:"RMA",         title:"Send back on RMA",     save:"Log RMA"},
   recycle: {label:"Recycled",    title:"Recycle equipment",    save:"Log Recycled Items"},
@@ -801,7 +817,7 @@ function renderStock(){
   $("st-ser").textContent=ser; $("st-non").textContent=non;
   const list=$("stockList");
   if(!Store.events.length){
-    list.innerHTML=`<div class="empty"><h3>No stock logged yet</h3><p>Scan items in as you receive them. Got a backup file from another phone? Restore it on the Backup tab.</p><button class="btn primary" data-quick="receive">Receive Your First Item</button></div>`;
+    list.innerHTML=`<div class="empty"><h3>No stock logged yet</h3><p>Scan items in as you receive them. New phone? Connect Google Sheets on the Admin tab to bring your entries back.</p><button class="btn primary" data-quick="receive">Receive Your First Item</button></div>`;
     return;
   }
   let html="", shown=0;
@@ -816,18 +832,14 @@ function renderStock(){
     const showItems = q && !nameHit ? matchItems : items;
     const open = q && matchItems.length && !nameHit ? " open" : "";
     const body = s.serial
-      ? (showItems.length ? showItems.map(i=>`<div class="srow"><button type="button" class="mono ser-link" data-ser="${esc(i.key)}">${esc(i.serial)}</button><small>${fmtDate(i.ts)}</small>
-          <button class="mini t-deploy" data-act="deploy" data-sku="${s.id}" data-serial="${esc(i.serial)}">Deploy</button>
-          <button class="mini t-transfer" data-act="transfer" data-sku="${s.id}" data-serial="${esc(i.serial)}">Transfer</button></div>`).join("")
+      ? (showItems.length ? showItems.map(i=>`<div class="srow"><button type="button" class="mono ser-link" data-ser="${esc(i.key)}">${esc(i.serial)}</button><small>Received ${fmtDate(i.ts)}</small></div>`).join("")
         : `<div class="srow muted">None in stock</div>`)
-      : `<div class="srow"><span style="flex:1" class="muted">Tracked by quantity</span>
-          <button class="mini t-receive" data-act="receive" data-sku="${s.id}">Add</button>
-          <button class="mini t-deploy" data-act="deploy" data-sku="${s.id}">Deploy</button></div>`;
+      : `<div class="srow"><span style="flex:1" class="muted">Tracked by quantity</span></div>`;
     html+=`<details class="sku"${open}><summary><div class="sku-name">${esc(s.name)}<small>${esc(s.hidden?s.group:s.id)} · ${s.serial?"Serialized":"Quantity"}</small></div>
       <span class="count ${count<=0?"zero":""}">${count}</span></summary><div class="sku-body">${body}</div></details>`;
   });
   if(!shown) html = q ? `<div class="empty"><p>Nothing in your stock matches "${esc($("stockQ").value)}". Check History to see where it went.</p></div>`
-                      : `<div class="empty"><h3>Nothing in stock right now</h3><p>Everything you received has been deployed, transferred, sent on RMA or recycled.</p><button class="btn primary" data-quick="receive">Receive Items</button></div>`;
+                      : `<div class="empty"><h3>Nothing in stock right now</h3><p>Everything you received has been deployed, transferred, sent on RMA or recycled.</p></div>`;
   list.innerHTML=html;
 }
 $("stockQ").addEventListener("input",renderStock);
@@ -843,8 +855,76 @@ const F = {type:"receive", serials:[]};
 $("skuSel").innerHTML = `<option value="">Choose an item…</option>` + GROUPS.map(g=>
   `<optgroup label="${esc(g)}">`+SKUS.filter(s=>s.group===g && !s.hidden).map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")+`</optgroup>`).join("");
 
+/* Deploy is one job: one account, a few different pieces (radio + router, or drop + NID + router) */
+F.lines=[];
+$("dItemSel").innerHTML = `<option value="">Or pick an item without a serial…</option>` + GROUPS.map(g=>{
+  const items=SKUS.filter(s=>s.group===g && !s.serial && !s.hidden);
+  return items.length ? `<optgroup label="${esc(g)}">`+items.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("")+`</optgroup>` : "";
+}).join("");
+const SERIAL_ITEMS_OPTS = `<option value="">Pick the item…</option>` + GROUPS.map(g=>{
+  const items=SKUS.filter(s=>s.group===g && s.serial && !s.hidden);
+  return items.length ? `<optgroup label="${esc(g)}">`+items.map(s=>`<option value="${esc(s.id)}">${esc(s.name)}</option>`).join("")+`</optgroup>` : "";
+}).join("");
+function deployAddSerial(v, quiet){
+  v=String(v||"").trim(); if(!v) return false;
+  if(isMac(v)){ if(!quiet) toast(MAC_MSG); return false; }
+  if(F.jobId && Store.events.some(e=>e.jobId===F.jobId && !e.voided && e.serialKey===keyOf(v))){ if(!quiet) toast("Already deployed to this account"); return false; }
+  const g=guessSku(v);
+  F.lines=[{serial:v, sku:g&&g.sku||null, pick:g&&g.skus||null, qty:1}];
+  renderLines(); return true;
+}
+function renderLines(){
+  const list=$("lineList");
+  $("dScanLbl").textContent = F.lines.length ? "Scan a Different Item" : "Scan Item";
+  renderJob();
+  if(!F.lines.length){ list.innerHTML=`<div class="lines-empty">Scan the item you're deploying, or pick a drop, NID or mount below.</div>`; return; }
+  list.innerHTML=F.lines.map((l,i)=>{
+    const s=SKU[l.sku];
+    let body="";
+    if(l.serial){
+      const rec=STOCK.serials.get(keyOf(l.serial));
+      body+=`<span class="mono">${esc(l.serial)}</span>`;
+      if(!s && l.pick) body+=`<div class="chips">${l.pick.map(id=>`<button type="button" data-lpick="${i}" data-sku="${esc(id)}">${esc(SKU[id].name)}</button>`).join("")}</div>`;
+      else if(!s) body+=`<select data-lsel="${i}" aria-label="Item for ${esc(l.serial)}">${SERIAL_ITEMS_OPTS}</select>`;
+      if(!(rec && rec.inStock)) body+=`<small class="warn">Not in your stock records</small>`;
+    } else if(s){
+      const have=STOCK.qty[s.id]||0;
+      body+=`<div class="qty sm"><button type="button" data-lq="${i}" data-d="-1" aria-label="Fewer">−</button><span>${l.qty}</span><button type="button" data-lq="${i}" data-d="1" aria-label="More">+</button></div>`;
+      body+=`<small class="${l.qty>have?"warn":""}">${Math.max(0,have)} on record</small>`;
+    }
+    const title = s ? s.name : l.pick ? "Which model is this?" : "Item not recognized";
+    return `<div class="line"><div class="line-main"><b>${esc(title)}</b>${body}</div><button type="button" class="x" data-lrm="${i}" aria-label="Remove">✕</button></div>`;
+  }).join("");
+}
+$("lineList").addEventListener("click",e=>{
+  const rm=e.target.closest("[data-lrm]"); if(rm){ F.lines.splice(Number(rm.dataset.lrm),1); renderLines(); return; }
+  const pk=e.target.closest("[data-lpick]"); if(pk){ const l=F.lines[Number(pk.dataset.lpick)]; l.sku=pk.dataset.sku; l.pick=null; renderLines(); return; }
+  const q=e.target.closest("[data-lq]"); if(q){ const l=F.lines[Number(q.dataset.lq)]; l.qty=Math.max(1,l.qty+Number(q.dataset.d)); renderLines(); }
+});
+$("lineList").addEventListener("change",e=>{ const sel=e.target.closest("[data-lsel]"); if(sel && sel.value){ const l=F.lines[Number(sel.dataset.lsel)]; l.sku=sel.value; l.pick=null; renderLines(); } });
+$("dItemSel").addEventListener("change",()=>{
+  const id=$("dItemSel").value; if(!id) return;
+  F.lines=[{serial:"", sku:id, qty:1}];
+  $("dItemSel").value=""; renderLines();
+});
+$("dAddSerial").addEventListener("click",()=>{ if(deployAddSerial($("dSerialIn").value)) $("dSerialIn").value=""; });
+$("dSerialIn").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("dAddSerial").click(); }});
+$("dScanBtn").addEventListener("click",()=>startLiveScan("log"));
+$("dPhotoBtn").addEventListener("click",()=>{ photoTarget="log"; $("camInput").value=""; $("camInput").click(); });
+
+/* items already deployed to this account, so the tech can see the job build up */
+F.jobId=null; F.jobAcct="";
+function renderJob(){
+  const box=$("jobList"); if(!box) return;
+  const acct=$("accountIn").value.trim();
+  const done=F.jobId && keyOf(acct)===keyOf(F.jobAcct) ? Store.events.filter(e=>e.jobId===F.jobId && !e.voided).sort((a,b)=>a.ts-b.ts) : [];
+  box.innerHTML = done.length ? `<div class="note info"><b>Deployed to ${esc(F.jobAcct)}</b><br>${done.map(e=>esc((SKU[e.sku]&&SKU[e.sku].name)||e.skuName)+(e.serial?` <span class="mono">${esc(e.serial)}</span>`:e.qty>1?` × ${esc(e.qty)}`:"")).join("<br>")}</div>` : "";
+}
+$("accountIn").addEventListener("input",()=>{ if(keyOf($("accountIn").value)!==keyOf(F.jobAcct)){ F.jobId=null; F.jobAcct=""; } renderJob(); });
+
 function openLog(type, sku, serial){
-  setType(type||"receive");
+  setType(type||"deploy");
+  if((type||"deploy")==="deploy"){ F.lines=[]; if(serial) deployAddSerial(serial,true); else if(sku && SKU[sku] && !SKU[sku].serial) F.lines.push({serial:"",sku,qty:1}); renderLines(); setTab("log"); return; }
   if(sku) $("skuSel").value=sku;
   F.serials=[]; F.pick=null; if(serial) F.serials.push(serial);
   $("qtyIn").value=1; $("formErr").innerHTML="";
@@ -856,18 +936,17 @@ function setType(t){
   $("logTitle").textContent=TYPES[t].title;
   $("saveBtn").textContent=TYPES[t].save;
   $("accountBlock").hidden = t!=="deploy";
+  $("deployBlock").hidden = t!=="deploy";
+  $("itemBlock").hidden = t==="deploy";
   $("toBlock").hidden = t!=="transfer";
   $("fromBlock").hidden = t!=="receive";
   $("rmaBlock").hidden = t!=="rma";
   syncForm();
 }
-document.querySelectorAll("#typeSeg button").forEach(b=>{
-  const icon=document.querySelector(`#quick [data-quick="${b.dataset.type}"] i`);
-  if(icon) b.prepend(icon.cloneNode(true));
-  b.addEventListener("click",()=>setType(b.dataset.type));
-});
+document.querySelectorAll("#typeSeg button").forEach(b=>b.addEventListener("click",()=>setType(b.dataset.type)));
 
 function syncForm(){
+  if(F.type==="deploy"){ $("serialBlock").hidden=true; $("qtyBlock").hidden=true; renderLines(); return; }
   const s=SKU[$("skuSel").value];
   const pick=!s && F.pick && F.pick.length>1;
   $("skuPick").hidden=!pick;
@@ -953,6 +1032,7 @@ let saving=false;
 $("logForm").addEventListener("submit", async e=>{
   e.preventDefault(); if(saving) return;
   gsGestureRefresh();
+  if(F.type==="deploy") return saveDeploy();
   const s=SKU[$("skuSel").value]; const err=m=>{ $("formErr").innerHTML=`<div class="note warn">${esc(m)}</div>`; };
   $("formErr").innerHTML="";
   if(!s) return err(F.pick ? "Tap which model this is, above." : F.serials.length ? "Stock Tracker doesn't recognize this serial. Choose the item." : "Choose an item first.");
@@ -988,6 +1068,33 @@ $("logForm").addEventListener("submit", async e=>{
   renderAll();
 });
 
+async function saveDeploy(){
+  const err=m=>{ $("formErr").innerHTML=`<div class="note warn">${esc(m)}</div>`; };
+  $("formErr").innerHTML="";
+  const typed=$("dSerialIn").value.trim(); if(typed && deployAddSerial(typed)) $("dSerialIn").value="";
+  const account=$("accountIn").value.trim();
+  if(!account){ $("accountIn").focus(); return err("Enter the customer account number."); }
+  if(!F.lines.length) return err("Scan or pick the item you're deploying.");
+  const unknown=F.lines.find(l=>!SKU[l.sku]); if(unknown) return err(`Pick the item for ${unknown.serial}.`);
+  saving=true; $("saveBtn").disabled=true; $("saveBtn").textContent="Saving…";
+  if(LOC.status!=="ok" || Date.now()-LOC.at>5*60000) await refreshLocation(true);
+  if(!F.jobId || keyOf(F.jobAcct)!==keyOf(account)){ F.jobId=newId(); F.jobAcct=account; }
+  const jobId=F.jobId, ts=Date.now();
+  const base={type:"deploy", ts, jobId, account, accountKey:keyOf(account), toTech:"", from:"", rma:"", note:$("noteIn").value.trim(),
+    lat:LOC.status==="ok"?LOC.lat:null, lng:LOC.status==="ok"?LOC.lng:null, acc:LOC.status==="ok"?LOC.acc:null, voided:false};
+  let ok=true;
+  F.lines.forEach(l=>{ const s=SKU[l.sku];
+    const r=Object.assign({},base,{sku:s.id, skuName:s.name, serial:l.serial||"", serialKey:keyOf(l.serial||""), qty:l.serial?1:l.qty});
+    if(!Store.add(r)) ok=false; });
+  if(ok){
+    const l=F.lines[0], s=SKU[l.sku];
+    toast(`Deployed ${s.name}`);
+    F.lines=[]; $("noteIn").value="";
+  }
+  saving=false; $("saveBtn").disabled=false; $("saveBtn").textContent=TYPES.deploy.save;
+  renderAll();
+}
+
 /* ---------- barcode scanning from a photo ---------- */
 let photoTarget="log";
 $("scanBtn").addEventListener("click",()=>startLiveScan("log"));
@@ -1010,7 +1117,7 @@ $("camInput").addEventListener("change",async ()=>{
   $("scanResults").onclick=e=>{ const b=e.target.closest("[data-pick]"); if(!b) return;
     const pick=found[Number(b.dataset.pick)];
     if(photoTarget==="count"){ if(countAdd(pick.text)==="mac"){ toast(MAC_MSG); return; } b.disabled=true; b.style.opacity=".5"; return; }
-    if(addSerial(pick.text)) toast("Added "+pick.text);
+    if(F.type==="deploy" ? deployAddSerial(pick.text) : addSerial(pick.text)) toast("Added "+pick.text);
     $("scanSheet").hidden=true; };
 });
 function loadImg(url){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=url; }); }
@@ -1097,6 +1204,8 @@ function openDetail(id){
       ${e.toTech?`<dt>Transferred to</dt><dd>${esc(e.toTech)}</dd>`:""}
       ${e.from?`<dt>Received from</dt><dd>${esc(e.from)}</dd>`:""}
       ${e.rma?`<dt>RMA number</dt><dd class="mono">${esc(e.rma)}</dd>`:""}
+      ${e.jobId ? (()=>{ const mates=Store.events.filter(x=>x.jobId===e.jobId && x.id!==e.id && !x.voided);
+          return mates.length ? `<dt>Installed with</dt><dd>${mates.map(x=>esc((SKU[x.sku]&&SKU[x.sku].name)||x.skuName)+(x.serial?` <span class="mono">${esc(x.serial)}</span>`:x.qty>1?` × ${esc(x.qty)}`:"")).join("<br>")}</dd>` : ""; })() : ""}
       <dt>GPS</dt><dd>${map}</dd>
       ${e.note?`<dt>Note</dt><dd>${esc(e.note)}</dd>`:""}
       ${e.voided?`<dt>Voided</dt><dd>${e.voidedAt?esc(fmtFull(e.voidedAt)):"Yes"}${e.voidReason?" · "+esc(e.voidReason):""}</dd>`:""}
@@ -1177,7 +1286,8 @@ const COLS = [
   ["Entry ID",         e=>e.id],
   ["Item code",        e=>e.sku],
   ["Timestamp",        e=>new Date(e.ts).toISOString()],
-  ["Voided at",        e=>e.voidedAt?new Date(e.voidedAt).toISOString():""]
+  ["Voided at",        e=>e.voidedAt?new Date(e.voidedAt).toISOString():""],
+  ["Job ID",           e=>e.jobId||""]
 ];
 let DLP=null;
 function getDL(){ if(!DLP) DLP=(window.claude && typeof window.claude.use==="function") ? window.claude.use("downloads").catch(()=>null) : Promise.resolve(null); return DLP; }
@@ -1216,7 +1326,7 @@ function buildWorkbook(){
   ws["!autofilter"]={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:Math.max(1,aoa.length-1),c:COLS.length-1}})};
   const onHand=onHandRows();
   const ws2=XLSX.utils.aoa_to_sheet(onHand); ws2["!cols"]=[{wch:34},{wch:22},{wch:14}];
-  const info=XLSX.utils.aoa_to_sheet([["Technician",ME.name],["Dealership",ME.dealer],["Saved",new Date().toLocaleString()],["Entries",Store.events.length],[],["Restore this file from the Backup tab in Stock Tracker. Don't edit the Entry ID, Item code or Timestamp columns."]]);
+  const info=XLSX.utils.aoa_to_sheet([["Technician",ME.name],["Dealership",ME.dealer],["Saved",new Date().toLocaleString()],["Entries",Store.events.length],[],["Exported from Stock Tracker for your records."]]);
   info["!cols"]=[{wch:14},{wch:40}];
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,"History"); XLSX.utils.book_append_sheet(wb,ws2,"On hand"); XLSX.utils.book_append_sheet(wb,info,"About");
@@ -1240,7 +1350,6 @@ async function exportExcel(btn){
 }
 function paintBackup(){
   const last=lsGet(K.backup,null), n=Store.events.length;
-  $("bkCount").textContent=n; $("bkLast").textContent = last ? fmtFull(last) : "Never";
   if(GS.connected && gsAvailable()){ paintGoogle(); return; }   // Google Sheets runs the status
   const canGoogle=gsAvailable();
   const newSince=Math.max(0, n-(lsGet(K.backupIds,0)||0));
@@ -1279,7 +1388,7 @@ function rowsToEntries(rows){
     const serial=cellStr(r["Serial"]), account=cellStr(r["Customer account"]);
     const num=v=>{ const n=parseFloat(cellStr(v)); return isFinite(n)?n:null; };
     const va=Date.parse(cellStr(r["Voided at"]));
-    out.push({id, type, ts, sku, skuName:cellStr(r["Item"]), serial, serialKey:keyOf(serial),
+    out.push({id, type, ts, sku, skuName:cellStr(r["Item"]), serial, serialKey:keyOf(serial), jobId:cellStr(r["Job ID"]),
       qty:Number(cellStr(r["Qty"]))||1, account, accountKey:keyOf(account), rma:cellStr(r["RMA number"]),
       toTech:cellStr(r["Transferred to"]), from:cellStr(r["Received from"]), note:cellStr(r["Note"]),
       lat:num(r["Latitude"]), lng:num(r["Longitude"]), acc:num(r["GPS accuracy (m)"]),
@@ -1303,22 +1412,6 @@ function mergeEntries(entries){
   }
   return {added, updated, gone};
 }
-$("restoreIn").addEventListener("change",async()=>{
-  const f=$("restoreIn").files && $("restoreIn").files[0]; const msg=$("restoreMsg");
-  if(!f) return;
-  if(!window.XLSX){ msg.innerHTML=`<div class="note warn">Excel tools didn't load. Connect to the internet and reopen Stock Tracker.</div>`; return; }
-  msg.innerHTML=`<div class="loc"><span class="spinner"></span><span>Reading ${esc(f.name)}…</span></div>`;
-  try{
-    const {entries, skipped}=parseBackup(await f.arrayBuffer());
-    const {added, updated, gone}=mergeEntries(entries);
-    msg.innerHTML=`<div class="note info">Restored <b>${added}</b> entr${added===1?"y":"ies"}${updated?`, updated ${updated} voided`:""}. ${entries.length-added-gone} ${entries.length-added-gone===1?"was":"were"} already on this phone.${gone?` ${gone} you deleted ${gone===1?"was":"were"} left out.`:""}${skipped?` ${skipped} row${skipped===1?"":"s"} couldn't be read and ${skipped===1?"was":"were"} skipped.`:""}</div>`;
-    if(added && !lsGet(K.backup,null)){ lsSet(K.backup, f.lastModified||Date.now()); lsSet(K.backupIds, Store.events.length); }
-    toast(added?`Restored ${added} entries`:"Already up to date");
-    renderAll();
-  }catch(e){
-    msg.innerHTML=`<div class="note warn">${esc(e && e.message || "Couldn't read that file. Pick the .xlsx backup Stock Tracker saved.")}</div>`;
-  }finally{ $("restoreIn").value=""; }
-});
 
 
 /* ---------- quarterly count (separate from stock; never changes it) ---------- */
@@ -1487,13 +1580,14 @@ function beep(ok){
   try{ if(navigator.vibrate) navigator.vibrate(ok?40:[30,60,30]); }catch(e){}
 }
 function liveFlash(cls){ const a=$("aim"); a.classList.remove("hit","dup"); void a.offsetWidth; a.classList.add(cls); setTimeout(()=>a.classList.remove(cls),450); }
-function liveCount(){ return LIVE.mode==="log" ? F.serials.length : (COUNT?COUNT.items.length:0); }
+function liveCount(){ return LIVE.mode==="log" ? (F.type==="deploy" ? F.lines.length : F.serials.length) : (COUNT?COUNT.items.length:0); }
 function paintLiveCount(){ $("liveN").textContent=liveCount(); $("liveUndo").disabled=!liveCount(); }
 $("liveScanBtn").addEventListener("click",()=>startLiveScan("count"));
 $("liveDone").addEventListener("click",stopLiveScan);
 $("liveUndo").addEventListener("click",()=>{
   let code="";
-  if(LIVE.mode==="log"){ if(!F.serials.length) return; code=F.serials.pop(); syncForm(); }
+  if(LIVE.mode==="log" && F.type==="deploy"){ const i=F.lines.map(l=>!!l.serial).lastIndexOf(true); if(i<0) return; code=F.lines[i].serial; F.lines.splice(i,1); renderLines(); }
+  else if(LIVE.mode==="log"){ if(!F.serials.length) return; code=F.serials.pop(); syncForm(); }
   else { if(!COUNT||!COUNT.items.length) return; const it=COUNT.items[0]; code=it.code; countRemove(it.key); }
   showScanRow(`<small>Removed</small><span class="mono">${esc(code)}</span>`);
 });
@@ -1564,7 +1658,7 @@ async function startLiveScan(mode){
   }
   const v=$("liveVideo"); v.srcObject=LIVE.stream;
   $("liveTitle").textContent = LIVE.mode==="log" ? TYPES[F.type].title : "Counting";
-  $("liveHint").textContent = LIVE.mode==="log" && F.type==="deploy" ? "Pinch to zoom. Closes after you accept one unit." : "Pinch to zoom. Scan and accept each unit, then tap Done.";
+  $("liveHint").textContent = LIVE.mode==="log" && F.type==="deploy" ? "Scan the item you're deploying. Pinch to zoom." : "Pinch to zoom. Scan and accept each unit, then tap Done.";
   $("liveScanner").hidden=false;
   try{ await v.play(); }catch(e){}
   setupZoom();
@@ -1619,10 +1713,10 @@ $("liveShoot").addEventListener("click",async()=>{
   let item="", warn="", blocked=false;
   if(LIVE.mode==="log"){
     if(isMac(text)){ warn=MAC_MSG; blocked=true; }
-    else if(F.serials.some(x=>keyOf(x)===key)){ warn="Already on this list"; blocked=true; }
+    else if(F.type==="deploy" ? (F.jobId && Store.events.some(e=>e.jobId===F.jobId && !e.voided && e.serialKey===key)) : F.serials.some(x=>keyOf(x)===key)){ warn=F.type==="deploy"?"Already deployed to this account":"Already on this list"; blocked=true; }
     else{
       const rec=STOCK.serials.get(key), g=guessSku(text), cur=SKU[$("skuSel").value];
-      item = g ? guessLabel(g)+(g.skus?" (pick after)":"") : cur ? cur.name : "Item not recognized. Pick it after.";
+      item = g ? guessLabel(g)+(g.skus?" (pick after)":"") : (cur && F.type!=="deploy") ? cur.name : "Item not recognized. Pick it after.";
       warn = F.type==="receive" && rec && rec.inStock ? "Already in your stock" : F.type!=="receive" && !(rec && rec.inStock) ? "Not in your stock records" : "";
     }
   } else {
@@ -1639,10 +1733,14 @@ $("liveRetry").addEventListener("click",()=>showScanRow(`<small>Put the red line
 $("liveAccept").addEventListener("click",()=>{
   const text=LIVE.pending; if(!text) return;
   if(LIVE.mode==="log"){
-    addSerial(text); beep(true);
-    const s=SKU[$("skuSel").value];
-    showScanRow(`<small>Added</small><span class="mono">${esc(text)}</span>${s?`<small>${esc(s.name)}</small>`:""}`);
-    if(F.type==="deploy") setTimeout(stopLiveScan, 400);
+    if(F.type==="deploy"){
+      deployAddSerial(text,true); beep(true);
+      setTimeout(stopLiveScan, 300);
+    } else {
+      addSerial(text); beep(true);
+      const s=SKU[$("skuSel").value];
+      showScanRow(`<small>Added</small><span class="mono">${esc(text)}</span>${s?`<small>${esc(s.name)}</small>`:""}`);
+    }
   } else {
     countAdd(text); beep(true);
     showScanRow(`<small>Counted</small><span class="mono">${esc(text)}</span>`);
@@ -1821,12 +1919,22 @@ window.addEventListener("online", ()=>{ if(GS.connected && gsTokenOk() && (gsPen
 window.addEventListener("offline", ()=>{ if(GS.connected){ gsErr="offline"; paintGoogle(); } });
 document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && GS.connected && gsTokenOk() && gsPending()) gsSync(); });
 
+/* ---------- appearance ---------- */
+function applyTheme(t){
+  if(t==="light"||t==="dark") document.documentElement.setAttribute("data-theme",t);
+  else document.documentElement.removeAttribute("data-theme");
+  document.querySelectorAll("#themeSeg [data-theme-pick]").forEach(b=>b.setAttribute("aria-pressed", b.dataset.themePick===t?"true":"false"));
+}
+let THEME="system"; try{ THEME=localStorage.getItem("techstock.theme")||"system"; }catch(e){}
+applyTheme(THEME);
+$("themeSeg").addEventListener("click",e=>{ const b=e.target.closest("[data-theme-pick]"); if(!b) return;
+  THEME=b.dataset.themePick; try{ localStorage.setItem("techstock.theme",THEME); }catch(err){} applyTheme(THEME); });
+
 /* ---------- home screen tip ---------- */
 const standalone = window.navigator.standalone===true || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
 $("homeTip").innerHTML = HELP.home;
 $("homeTip").hidden = standalone || !HELP.home;
-$("bkSteps").innerHTML = HELP.steps.map(t=>`<li>${t}</li>`).join("");
-$("restoreHow").innerHTML = HELP.restore;
+
 
 /* ---------- offline support ---------- */
 if("serviceWorker" in navigator && location.protocol==="https:"){
@@ -1835,7 +1943,7 @@ if("serviceWorker" in navigator && location.protocol==="https:"){
 
 /* ---------- boot ---------- */
 function renderAll(){ STOCK=computeStock(); renderStock(); renderHistory(); syncForm(); paintBackup(); renderCount(); }
-paintHeader(); showSetup(); paintLoc(); setType("receive"); renderAll();
+paintHeader(); showSetup(); paintLoc(); setType("deploy"); renderAll();
 if(GS.connected && gsAvailable()){ if(gsTokenOk() && gsPending()) gsSync(); else if(!gsTokenOk()){ gsErr="auth"; paintGoogle(); } }
 setTab("log");
 })();
