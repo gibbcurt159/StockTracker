@@ -1553,7 +1553,7 @@ document.addEventListener("visibilitychange",()=>{ if(document.hidden) stopLiveS
    Each tech connects their own Google account. Entries always save on the phone first;
    the sheet is a live copy kept up to date in the background.
    Setup: paste the OAuth client ID from Google Cloud between the quotes below. */
-const GOOGLE_CLIENT_ID = "";
+const GOOGLE_CLIENT_ID = "649946221532-ktu3ej6cnsp26fnrq7emv1ubh2sib1kn.apps.googleusercontent.com";
 const GS_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email";
 const GS_KEY = "techstock.gs";
 const GS = Object.assign({connected:false, email:"", sheetId:"", token:"", exp:0, rev:0, synced:0, lastSync:0}, lsGet(GS_KEY, {}));
@@ -1668,7 +1668,7 @@ function paintGoogle(){
   }
   if(!GS.connected){
     pill.textContent="Off";
-    txt.textContent="Save every entry to a Google Sheet in your own Google Drive, automatically. Stock Tracker can only open the sheet it creates, nothing else in your Drive.";
+    txt.innerHTML='Save every entry to a Google Sheet in your own Google Drive, automatically. Stock Tracker can only open the sheet it creates, nothing else in your Drive. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>';
     btns.innerHTML=`<button class="btn primary" type="button" id="gsConnect">Connect Google Sheets</button>`;
     banner.hidden=true; return;
   }
