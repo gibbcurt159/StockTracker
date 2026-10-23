@@ -23,7 +23,7 @@
   --brand:#002B2B; --brand-2:#306154; --brand-ink:#FFFFFF; --accent:#58C774; --accent-ink:#06301A;
   --line:rgba(0,43,43,.09); --shadow:0 1px 2px rgba(0,43,43,.06),0 6px 18px rgba(0,43,43,.06);
   --in:#23864A; --in-bg:#DDF3E4; --out:#2563A6; --out-bg:#DFEAF7; --xfer:#9A6212; --xfer-bg:#F6EBD6;
-  --ret:#7A4FA8; --ret-bg:#ECE3F6; --warn:#B4400E; --warn-bg:#FBE7DC; --void:#8A9792;
+  --ret:#7A4FA8; --ret-bg:#ECE3F6; --warn:#B4400E; --warn-bg:#FBE7DC; --void:#8A9792; --rec-bg:#D2DCD7;
   --f-display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
   --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -34,13 +34,13 @@
   --brand:#0D2523; --brand-2:#4E8C7B; --brand-ink:#E9F5EF; --accent:#58C774; --accent-ink:#04200F;
   --line:rgba(200,240,225,.08); --shadow:0 1px 2px rgba(0,0,0,.3);
   --in:#6FD893; --in-bg:#163A26; --out:#86B6EC; --out-bg:#182C44; --xfer:#E2B467; --xfer-bg:#3A2C14;
-  --ret:#C3A2E6; --ret-bg:#2E2240; --warn:#F39A6B; --warn-bg:#3B2116; --void:#6D7F79; color-scheme:dark}}
+  --ret:#C3A2E6; --ret-bg:#2E2240; --warn:#F39A6B; --warn-bg:#3B2116; --void:#6D7F79; --rec-bg:#2A4741; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0A1615; --surface:#11211F; --surface-2:#19302C; --ink:#E4EFEA; --muted:#93AAA3;
   --brand:#0D2523; --brand-2:#4E8C7B; --brand-ink:#E9F5EF; --accent:#58C774; --accent-ink:#04200F;
   --line:rgba(200,240,225,.08); --shadow:0 1px 2px rgba(0,0,0,.3);
   --in:#6FD893; --in-bg:#163A26; --out:#86B6EC; --out-bg:#182C44; --xfer:#E2B467; --xfer-bg:#3A2C14;
-  --ret:#C3A2E6; --ret-bg:#2E2240; --warn:#F39A6B; --warn-bg:#3B2116; --void:#6D7F79; color-scheme:dark}
+  --ret:#C3A2E6; --ret-bg:#2E2240; --warn:#F39A6B; --warn-bg:#3B2116; --void:#6D7F79; --rec-bg:#2A4741; color-scheme:dark}
 
 *{box-sizing:border-box}
 html,body{background:var(--bg)}
@@ -78,7 +78,7 @@ h3{margin:0;font:600 1rem/1.2 var(--f-display);letter-spacing:.01em}
 /* type colours */
 .t-receive{--tc:var(--in);--tb:var(--in-bg)} .t-deploy{--tc:var(--out);--tb:var(--out-bg)}
 .t-transfer{--tc:var(--xfer);--tb:var(--xfer-bg)} .t-return,.t-rma{--tc:var(--ret);--tb:var(--ret-bg)}
-.t-recycle{--tc:var(--muted);--tb:var(--surface-2)}
+.t-recycle{--tc:var(--muted);--tb:var(--rec-bg)}
 .qa i,.pill{background:var(--tb);color:var(--tc)}
 .pill{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:99px;white-space:nowrap}
 
@@ -91,7 +91,7 @@ h3{margin:0;font:600 1rem/1.2 var(--f-display);letter-spacing:.01em}
 /* inputs */
 .search{position:relative}
 .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
-.search input{padding-left:38px}
+.search input,.search input[type=search]{padding-left:40px}
 .field{display:flex;flex-direction:column;gap:6px}
 .field>label,.lbl{font-size:.82rem;font-weight:600;color:var(--muted)}
 input[type=text],input[type=search],input[type=number],select,textarea{width:100%;border:0;background:var(--surface);border-radius:var(--r-sm);padding:12px;box-shadow:inset 0 0 0 1px var(--line);min-width:0}
@@ -111,7 +111,9 @@ input:focus,select:focus,textarea:focus{outline:none;box-shadow:inset 0 0 0 2px 
 
 /* segmented */
 .seg{display:grid;grid-template-columns:repeat(5,1fr);background:var(--surface-2);border-radius:var(--r);padding:4px;gap:4px}
-.seg button{border:0;background:transparent;border-radius:9px;padding:10px 0;font-weight:600;font-size:.82rem;min-width:0;color:var(--muted)}
+.seg button{border:0;background:transparent;border-radius:9px;padding:8px 0 7px;font-weight:600;font-size:.8rem;min-width:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px}
+.seg button i{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-style:normal;background:var(--tb);color:var(--tc)}
+.seg button i svg{width:16px;height:16px}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--tc);box-shadow:var(--shadow)}
 
 .card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;display:flex;flex-direction:column;gap:14px}
@@ -322,8 +324,8 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
       <div class="stat"><b id="st-non" class="num">0</b><span>Mounts &amp; parts</span></div>
     </div>
     <div class="backup" id="backupCard" hidden>
-      <div class="backup-txt"><b id="backupH">Back up to OneDrive</b><span id="backupSub">Save your history as an Excel file.</span></div>
-      <button class="btn sm brand" type="button" data-backup>Save to Excel</button>
+      <div class="backup-txt"><b id="backupH">Not backed up</b><span id="backupSub"></span></div>
+      <span id="backupAct"></span>
     </div>
     <div class="backup" id="gsBanner" hidden>
       <div class="backup-txt"><b id="gsBannerH">Not in Google Sheets yet</b><span id="gsBannerSub"></span></div>
@@ -348,6 +350,7 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
       <div class="field">
         <label for="skuSel">Item</label>
         <select id="skuSel"></select>
+        <div id="skuPick" class="field" hidden></div>
       </div>
       <div class="field" id="serialBlock" hidden>
         <span class="lbl" id="serialLbl">Serial numbers</span>
@@ -466,24 +469,20 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
       <div class="gs-btns" id="gsBtns"></div>
     </div>
     <div class="card">
-      <h3>Back up to OneDrive</h3>
+      <h3>Export to Excel</h3>
+      <p class="muted" style="margin:0;font-size:.9rem">Save a copy of your history and what's on hand as an Excel file for your own records.</p>
       <dl class="kv-plain">
         <dt>Entries on this phone</dt><dd id="bkCount">0</dd>
-        <dt>Last backup</dt><dd id="bkLast">Never</dd>
-        <dt>New since then</dt><dd id="bkNew">0</dd>
+        <dt>Last export</dt><dd id="bkLast">Never</dd>
       </dl>
-      <button class="btn primary block" type="button" data-backup>Save to Excel</button>
-      <ol class="steps" id="bkSteps">
-        <li>Tap <b>Save to Excel</b>, then <b>Save to Files</b>.</li>
-        <li>Pick <b>OneDrive</b> and your backup folder.</li>
-        <li>Tap <b>Replace</b> when asked, so you always have one up-to-date file.</li>
-      </ol>
+      <button class="btn block" type="button" data-backup>Export to Excel</button>
+      <ol class="steps" id="bkSteps"></ol>
     </div>
     <div class="card">
       <h3>Restore from Excel</h3>
-      <p class="muted" style="margin:0;font-size:.9rem">New phone, or your records disappeared? Pick your backup file from OneDrive. Missing entries come back and nothing gets doubled up.</p>
+      <p class="muted" style="margin:0;font-size:.9rem">Load an Excel file exported from Stock Tracker. Missing entries come back and nothing gets doubled up. With Google Sheets connected, a new phone gets your entries back as soon as you connect.</p>
       <p class="muted" style="margin:0;font-size:.85rem" id="restoreHow"></p>
-      <label class="btn brand block file-pick" for="restoreIn">Choose Backup File
+      <label class="btn brand block file-pick" for="restoreIn">Choose Excel File
         <input type="file" id="restoreIn" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
       <div id="restoreMsg"></div>
     </div>
@@ -539,7 +538,7 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
   <div class="setup-band"><div class="setup-band-in">
     <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg></div>
     <h1 id="setupH">Stock Tracker</h1>
-    <p>Log every unit you receive, deploy, transfer, RMA or recycle. Everything stays on this phone, backed up to your OneDrive.</p>
+    <p>Log every unit you receive, deploy, transfer, RMA or recycle. Everything saves on this phone, and you can back it up to your own Google Sheet.</p>
   </div></div>
   <form class="setup-body" id="setupForm" novalidate>
     <div class="field"><label for="setupName">Your name</label>
@@ -562,22 +561,87 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
 
 /* ---------- catalogue ---------- */
 const SKUS = [
-  {id:"adtran-router",   name:"Adtran Wi-Fi 6 Router",                    group:"Wi-Fi",          serial:true},
-  {id:"adtran-ext",      name:"Adtran Wi-Fi 6 Extender",                  group:"Wi-Fi",          serial:true},
-  {id:"cat12-b42",       name:"CAT12 LTE - B42/43/48",                    group:"LTE",            serial:true},
-  {id:"cat12-b38",       name:"CAT 12 LTE - B38/41 2.5GHz",               group:"LTE",            serial:true},
-  {id:"5g-nextgen",      name:"5G Next Generation Outdoor CPE",           group:"5G",             serial:true},
-  {id:"5g-highgain",     name:"5G High Gain Outdoor CPE",                 group:"5G",             serial:true},
-  {id:"ht2000",          name:"Hughes HT2000 Modem J2",                   group:"Satellite",      serial:true},
-  {id:"ht3000",          name:"HT3000 XCI Modem",                         group:"Satellite",      serial:true},
-  {id:"htj-radio",       name:"HTJ RADIO ASSY, LHCP",                     group:"Satellite",      serial:true},
-  {id:"hc210-radio",     name:"RADIO ASSY, HC210-L, MULTI-J, LHCP",       group:"Satellite",      serial:true},
-  {id:"fiber-drop",      name:"Fiber Drop Cable (pre-terminated)",        group:"Fiber",          serial:true},
-  {id:"jpipe-mount",     name:"2 PK J PIPE ANTENNA MOUNT 39\" OD 1.66\"", group:"Mounts & parts", serial:false},
-  {id:"tri-mast",        name:"Hughes TRI MAST MOUNT FOR J1 and J2",      group:"Mounts & parts", serial:false},
-  {id:"fwa-surge",       name:"FWA SURGE ARRESTOR",                       group:"Mounts & parts", serial:false}
+  {"id": "O5-100M1", "name": "5G Next Generation Outdoor CPE", "group": "5G & fixed wireless", "serial": true},
+  {"id": "O5M-NA", "name": "5G NR Rel 15 Outdoor CPE with 1Gbps 2.5G", "group": "5G & fixed wireless", "serial": true},
+  {"id": "O5 PRO MAX", "name": "O5 PRO MAX High Gain Outdoor CPE", "group": "5G & fixed wireless", "serial": true},
+  {"id": "B5-100M", "name": "5G High Gain Outdoor CPE", "group": "5G & fixed wireless", "serial": true},
+  {"id": "B5-100M1", "name": "5G High Gain Outdoor CPE (T830)", "group": "5G & fixed wireless", "serial": true},
+  {"id": "OA-335 B42/43", "name": "CAT12 LTE - B42/43/48", "group": "LTE", "serial": true},
+  {"id": "FWCAT12-3.5M", "name": "CPE-CAT12 LTE Band 42/43 MassiveMIMO", "group": "LTE", "serial": true},
+  {"id": "FWCAT12-2.5M", "name": "2.5GHz CAT12 LTE Band 42/43 M MIMO", "group": "LTE", "serial": true},
+  {"id": "735060", "name": "DUAL MODE CPE 7000", "group": "LTE", "serial": true},
+  {"id": "854-V6", "name": "Adtran Wi-Fi 6 Router", "group": "Wi-Fi & routers", "serial": true},
+  {"id": "834-V6", "name": "Adtran Wi-Fi 6 Extender", "group": "Wi-Fi & routers", "serial": true},
+  {"id": "WAP6804-MT", "name": "Metroloop Zyxel Mesh", "group": "Wi-Fi & routers", "serial": true},
+  {"id": "EMG6726-B10A-MT", "name": "NLA Metroloop Zyxel Router", "group": "Wi-Fi & routers", "serial": true},
+  {"id": "3TN00665AA", "name": "Nokia XGSPON ONT XS-010X-R", "group": "Fiber ONTs", "serial": true},
+  {"id": "3TN01554AA", "name": "Nokia ONT XS-010X-D", "group": "Fiber ONTs", "serial": true},
+  {"id": "1287987F1", "name": "2.5GbE GPON ONT with VOIP 601qv", "group": "Fiber ONTs", "serial": true},
+  {"id": "1287835F1", "name": "Adtran 424 ONT", "group": "Fiber ONTs", "serial": true},
+  {"id": "00D101EB49R100MP", "name": "100M Evolv Dielectric Drop PushLok Tech", "group": "Fiber drops & NIDs", "serial": false},
+  {"id": "00D101EB49R200MP", "name": "200M Evolv Dielectric Drop PushLok Tech", "group": "Fiber drops & NIDs", "serial": false},
+  {"id": "00D101EB49R300MP", "name": "300M Evolv Dielectric Drop PushLok Tech", "group": "Fiber drops & NIDs", "serial": false},
+  {"id": "00D101EB49R500MP", "name": "500M Evolv Dielectric Drop PushLok Tech", "group": "Fiber drops & NIDs", "serial": false},
+  {"id": "FTH602A010XP", "name": "NID - HSG,FTH-602,1 SCAPC,NOGP,HEX,STD", "group": "Fiber drops & NIDs", "serial": false},
+  {"id": "EVOFORCE1", "name": "Android TV Streaming Player (IPA2112HDW)", "group": "TV", "serial": true},
+  {"id": "9988030065MFG", "name": "STB KAMAI 7XM W/NOVA REMOTE", "group": "TV", "serial": true},
+  {"id": "XTV LEAVE BEHIND", "name": "XTV Quick Start Guide (bundle of 50)", "group": "TV", "serial": false},
+  {"id": "1505216-0122", "name": "Hughes HT2000 Modem J2", "group": "Hughes satellite", "serial": true},
+  {"id": "1507883-1104", "name": "HT3000 XCI Modem", "group": "Hughes satellite", "serial": true},
+  {"id": "1507724-0002", "name": "RADIO ASSY, HC210-L, MULTI-J, LHCP", "group": "Hughes satellite", "serial": true},
+  {"id": "1507724-1004", "name": "HC210 2w Radio (LH)", "group": "Hughes satellite", "serial": true},
+  {"id": "1504000-0022", "name": "Assy, Radio, LHCP, Jupiter 2W", "group": "Hughes satellite", "serial": true},
+  {"id": "1502938-0001", "name": "HTJ RADIO ASSY", "group": "Hughes satellite", "serial": true},
+  {"id": "1502938-0002", "name": "HTJ RADIO ASSY, LHCP", "group": "Hughes satellite", "serial": true},
+  {"id": "1502938-0016", "name": "HTJ 1 WATT RADIO ASSY, LHCP", "group": "Hughes satellite", "serial": true},
+  {"id": "1505328-0014", "name": "Hughes 1 Watt Left Radio for J2", "group": "Hughes satellite", "serial": true},
+  {"id": "1504915-0013", "name": "Hughes 0.74m Steel Ka Antenna J1 and J2", "group": "Hughes satellite", "serial": false},
+  {"id": "1504915-0102", "name": "Hughes 0.74m Steel Azel for J1 and J2", "group": "Hughes satellite", "serial": false},
+  {"id": "1506560-0036", "name": "90cm Antenna", "group": "Hughes satellite", "serial": false},
+  {"id": "1506561-0031", "name": "90cm AzEl", "group": "Hughes satellite", "serial": false},
+  {"id": "1503931-0003", "name": "Hughes TRI MAST MOUNT FOR J1 and J2", "group": "Hughes satellite", "serial": false},
+  {"id": "RM4100N-043", "name": "Satellite Modem (30V) - SurfBeam 2", "group": "SurfBeam satellite", "serial": true},
+  {"id": "X01012000A001", "name": "eTRIA - SurfBeam 2 (4 pack)", "group": "SurfBeam satellite", "serial": true},
+  {"id": "1172769-004", "name": "SurfBeam 2 Probrand v2 Antenna (4-pack)", "group": "SurfBeam satellite", "serial": false},
+  {"id": "1172770", "name": "SurfBeam 2 Probrand v2 Az/El (4-pack)", "group": "SurfBeam satellite", "serial": false},
+  {"id": "1140662", "name": "SurfBeam 2 Probrand Mast Mount (4-pack)", "group": "SurfBeam satellite", "serial": false},
+  {"id": "PVJM-39", "name": "2 PK J PIPE ANTENNA MOUNT 39\" OD 1.66\"", "group": "Mounts & surge", "serial": false},
+  {"id": "PVFWSURGE", "name": "FWA SURGE ARRESTOR", "group": "Mounts & surge", "serial": false},
+  {"id": "fiber-drop", "name": "Fiber Drop Cable (older entries)", "group": "Fiber drops & NIDs", "serial": true, "hidden": true}
 ];
-const GROUPS = ["Wi-Fi","LTE","5G","Satellite","Fiber","Mounts & parts"];
+const GROUPS = ["5G & fixed wireless", "LTE", "Wi-Fi & routers", "Fiber ONTs", "Fiber drops & NIDs", "TV", "Hughes satellite", "SurfBeam satellite", "Mounts & surge"];
+/* serial number patterns from the inventory team's lists: first match wins; more than one model means the tech picks */
+const SERIAL_RULES = [
+  [/^854V6[A-Z0-9]{11}$/, ["854-V6"]],
+  [/^834V6[A-Z0-9]{11}$/, ["834-V6"]],
+  [/^O5SGS\d{9}$/, ["O5-100M1"]],
+  [/^O5MGS\d{9}$/, ["O5M-NA"]],
+  [/^O5PGS\d{9}$/, ["O5 PRO MAX"]],
+  [/^B5SGS\d{9}$/, ["B5-100M", "B5-100M1"]],
+  [/^OAK[A-Z]{2}\d{9}$/, ["OA-335 B42/43"]],
+  [/^GMK\d{12}$/, ["FWCAT12-3.5M", "FWCAT12-2.5M"]],
+  [/^GMB\d{9}$/, ["735060"]],
+  [/^BY\d{10}[A-Z0-9]{2}$/, ["1505216-0122"]],
+  [/^E\d{11}[A-Z0-9]{2}$/, ["1507883-1104"]],
+  [/^902\d{9}$/, ["1507724-0002", "1507724-1004"]],
+  [/^501\d{9}$/, ["1502938-0002", "1502938-0001", "1502938-0016", "1504000-0022"]],
+  [/^601\d{9}$/, ["1505328-0014"]],
+  [/^2837\d{8}$/, ["RM4100N-043"]],
+  [/^10\d{8}$/, ["X01012000A001"]],
+  [/^ALCLFF[0-9A-F]{6}$/, ["3TN00665AA"]],
+  [/^ALCLFE[0-9A-F]{6}$/, ["3TN01554AA"]],
+  [/^ALCL[0-9A-F]{8}$/, ["3TN00665AA", "3TN01554AA"]],
+  [/^ADTN21[0-9A-F]{6}$/, ["1287835F1"]],
+  [/^ADTN25[0-9A-F]{6}$/, ["1287987F1"]],
+  [/^ADTN[0-9A-F]{8}$/, ["1287987F1", "1287835F1"]],
+  [/^S2\d{2}Z\d{8}$/, ["WAP6804-MT", "EMG6726-B10A-MT"]],
+  [/^E66AV\d{10}$/, ["EVOFORCE1"]],
+  [/^101-\d{8}$/, ["9988030065MFG"]]
+];
+/* first 6 characters of MAC addresses on this equipment, so a scanned MAC barcode can be caught */
+const MAC_OUIS = new Set(["001FFB", "002445", "00A0BC", "2479EF", "2CD8AE", "38F8F6", "5422E0", "5C0FFB", "64A0AC", "80029C", "844D4C", "A0EEEE", "B41D62", "BC2106", "D41AD1", "D8ECE5", "F835DD"]);
+/* item codes used before the inventory list was loaded */
+const LEGACY_SKU = {"adtran-router":"854-V6","adtran-ext":"834-V6","cat12-b42":"OA-335 B42/43","cat12-b38":"FWCAT12-2.5M","5g-nextgen":"O5-100M1","5g-highgain":"B5-100M","ht2000":"1505216-0122","ht3000":"1507883-1104","htj-radio":"1502938-0002","hc210-radio":"1507724-0002","jpipe-mount":"PVJM-39","tri-mast":"1503931-0003","fwa-surge":"PVFWSURGE"};
 const SKU = Object.fromEntries(SKUS.map(s=>[s.id,s]));
 const TYPES = {
   receive: {label:"Received",    title:"Receive items",        save:"Log Received Items"},
@@ -610,23 +674,23 @@ const PLAT = /iPhone|iPad|iPod/.test(UA) || (navigator.platform==="MacIntel" && 
            : /Android/i.test(UA) ? "android" : "other";
 const HELP = {
   ios: {
-    steps:["Tap <b>Save to Excel</b>, then <b>Save to Files</b>.","Pick <b>OneDrive</b> and your backup folder.","Tap <b>Replace</b> when asked, so you always have one up-to-date file."],
+    steps:["Tap <b>Export to Excel</b>.","Choose <b>Save to Files</b> to keep it, or open it in Excel."],
     home:"Add Stock Tracker to your Home Screen: tap the <b>Share</b> button in Safari, then <b>Add to Home Screen</b>. It opens like an app and iPhone is less likely to clear its data.",
-    restore:"Tap Choose Backup File, then <b>Browse</b> › <b>OneDrive</b> and pick your file.",
+    restore:"Tap Choose Excel File, then <b>Browse</b> and pick the file from wherever you saved it.",
     loc:"Location is off. Turn it on in Settings › Privacy & Security › Location Services › Safari Websites.",
     cam:"Camera is blocked. In Safari tap aA › Website Settings › Camera › Allow, then try again."
   },
   android: {
-    steps:["Tap <b>Save to Excel</b>. The file saves to your <b>Downloads</b>.","Open the <b>OneDrive</b> app, go to your backup folder, tap <b>+</b> › <b>Upload</b> and pick the file from Downloads.","If OneDrive asks, choose <b>Replace</b>, then delete the copy in Downloads so the next backup keeps the same name."],
+    steps:["Tap <b>Export to Excel</b>. The file saves to your <b>Downloads</b>.","Open it from Downloads in Excel, or move it wherever you keep files."],
     home:"Add Stock Tracker to your home screen: tap <b>⋮</b> in Chrome, then <b>Add to Home screen</b> or <b>Install app</b>. It opens like an app and keeps your data more reliably.",
-    restore:"Tap Choose Backup File, open the menu, pick <b>OneDrive</b> and select your file.",
+    restore:"Tap Choose Excel File and pick it from Downloads or wherever you saved it.",
     loc:"Location is off. In Chrome, tap the icon beside the web address › Permissions › Location › Allow.",
     cam:"Camera is blocked. In Chrome, tap the icon beside the web address › Permissions › Camera › Allow."
   },
   other: {
-    steps:["Click <b>Save to Excel</b>. The file goes to your Downloads folder.","Move it into your OneDrive backup folder.","Replace the old file, so you always have one up-to-date copy."],
+    steps:["Click <b>Export to Excel</b>. The file goes to your Downloads folder."],
     home:"",
-    restore:"Click Choose Backup File and pick your file from your OneDrive folder.",
+    restore:"Click Choose Excel File and pick the file you exported.",
     loc:"Location is off. Allow location for this site in your browser settings.",
     cam:"Camera is blocked. Allow the camera for this site in your browser settings."
   }
@@ -658,6 +722,7 @@ const Store = {
   }
 };
 Store.events.sort((a,b)=>b.ts-a.ts);
+Store.events.forEach(e=>{ if(LEGACY_SKU[e.sku]){ e.sku=LEGACY_SKU[e.sku]; e.skuName=SKU[e.sku].name; } });
 // Ask the browser to keep this site's data (iPhone honours this best from the Home Screen)
 try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
 
@@ -679,23 +744,41 @@ function computeStock(){
 }
 let STOCK = computeStock();
 
-/* Work out the item from a serial: first from this phone's records, then from the
-   pattern of serials already logged for each item (same length and opening characters). */
+/* Work out the item from a serial: this phone's records first, then the serial patterns
+   from the inventory team's lists, then patterns of serials this tech has already logged. */
+function ruleSkus(serial){
+  const k=keyOf(serial);
+  for(const [rx,skus] of SERIAL_RULES) if(rx.test(k)) return skus.filter(id=>SKU[id]);
+  return null;
+}
+function learnedSku(key, among){
+  const bySku={};
+  Store.events.forEach(e=>{ if(!e.voided && e.serialKey && SKU[e.sku] && SKU[e.sku].serial && (!among || among.includes(e.sku))) (bySku[e.sku]=bySku[e.sku]||new Set()).add(e.serialKey); });
+  for(const n of [8,7,6,5,4]){
+    if(key.length<n+2) continue;
+    const head=key.slice(0,n), hits=[];
+    Object.entries(bySku).forEach(([sku,set])=>{ let c=0; set.forEach(k=>{ if(k.length===key.length && k.slice(0,n)===head) c++; }); if(c) hits.push([sku,c]); });
+    if(hits.length===1) return hits[0][0];
+    if(hits.length>1){ hits.sort((a,b)=>b[1]-a[1]); return hits[0][1]>=3*hits[1][1] ? hits[0][0] : null; }
+  }
+  return null;
+}
 function guessSku(serial){
   const key=keyOf(serial); if(!key) return null;
   const rec=STOCK.serials.get(key);
   if(rec && SKU[rec.sku]) return {sku:rec.sku, how:"record"};
-  const bySku={};
-  Store.events.forEach(e=>{ if(!e.voided && e.serialKey && SKU[e.sku] && SKU[e.sku].serial) (bySku[e.sku]=bySku[e.sku]||new Set()).add(e.serialKey); });
-  for(const n of [6,5,4]){
-    if(key.length<n+2) continue;
-    const head=key.slice(0,n), hits=[];
-    Object.entries(bySku).forEach(([sku,set])=>{ let c=0; set.forEach(k=>{ if(k.length===key.length && k.slice(0,n)===head) c++; }); if(c) hits.push([sku,c]); });
-    if(hits.length===1) return {sku:hits[0][0], how:"pattern"};
-    if(hits.length>1){ hits.sort((a,b)=>b[1]-a[1]); if(hits[0][1]>=3*hits[1][1]) return {sku:hits[0][0], how:"pattern"}; return null; }
-  }
-  return null;
+  const fromList=ruleSkus(key);
+  if(fromList && fromList.length===1) return {sku:fromList[0], how:"list"};
+  if(fromList && fromList.length>1){ const l=learnedSku(key, fromList); return l ? {sku:l, how:"pattern"} : {skus:fromList, how:"list"}; }
+  const l=learnedSku(key); return l ? {sku:l, how:"pattern"} : null;
 }
+function guessLabel(g){ return !g ? "" : g.sku ? SKU[g.sku].name : g.skus.map(id=>SKU[id].name).join(" or "); }
+/* a MAC address barcode sits next to the serial on most labels */
+function isMac(v){
+  const k=keyOf(v).replace(/[:.\-]/g,"");
+  return /^[0-9A-F]{12}$/.test(k) && MAC_OUIS.has(k.slice(0,6)) && !ruleSkus(k);
+}
+const MAC_MSG="That's the MAC address barcode. Scan the serial number (S/N) instead.";
 
 /* ---------- tabs ---------- */
 let tab="stock";
@@ -740,7 +823,7 @@ function renderStock(){
       : `<div class="srow"><span style="flex:1" class="muted">Tracked by quantity</span>
           <button class="mini t-receive" data-act="receive" data-sku="${s.id}">Add</button>
           <button class="mini t-deploy" data-act="deploy" data-sku="${s.id}">Deploy</button></div>`;
-    html+=`<details class="sku"${open}><summary><div class="sku-name">${esc(s.name)}<small>${esc(s.group)} · ${s.serial?"Serialized":"Quantity"}</small></div>
+    html+=`<details class="sku"${open}><summary><div class="sku-name">${esc(s.name)}<small>${esc(s.hidden?s.group:s.id)} · ${s.serial?"Serialized":"Quantity"}</small></div>
       <span class="count ${count<=0?"zero":""}">${count}</span></summary><div class="sku-body">${body}</div></details>`;
   });
   if(!shown) html = q ? `<div class="empty"><p>Nothing in your stock matches "${esc($("stockQ").value)}". Check History to see where it went.</p></div>`
@@ -751,18 +834,19 @@ $("stockQ").addEventListener("input",renderStock);
 document.addEventListener("click",e=>{
   const q=e.target.closest("[data-quick]"); if(q){ openLog(q.dataset.quick); return; }
   const a=e.target.closest("[data-act]"); if(a){ e.preventDefault(); openLog(a.dataset.act, a.dataset.sku, a.dataset.serial); return; }
-  const b=e.target.closest("[data-backup]"); if(b){ exportExcel(b); }
+  const b=e.target.closest("[data-backup]"); if(b){ exportExcel(b); return; }
+  const g=e.target.closest("[data-goto]"); if(g){ setTab(g.dataset.goto); }
 });
 
 /* ---------- log form ---------- */
 const F = {type:"receive", serials:[]};
 $("skuSel").innerHTML = `<option value="">Choose an item…</option>` + GROUPS.map(g=>
-  `<optgroup label="${esc(g)}">`+SKUS.filter(s=>s.group===g).map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")+`</optgroup>`).join("");
+  `<optgroup label="${esc(g)}">`+SKUS.filter(s=>s.group===g && !s.hidden).map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")+`</optgroup>`).join("");
 
 function openLog(type, sku, serial){
   setType(type||"receive");
   if(sku) $("skuSel").value=sku;
-  F.serials=[]; if(serial) F.serials.push(serial);
+  F.serials=[]; F.pick=null; if(serial) F.serials.push(serial);
   $("qtyIn").value=1; $("formErr").innerHTML="";
   syncForm(); setTab("log");
 }
@@ -777,10 +861,17 @@ function setType(t){
   $("rmaBlock").hidden = t!=="rma";
   syncForm();
 }
-document.querySelectorAll("#typeSeg button").forEach(b=>b.addEventListener("click",()=>setType(b.dataset.type)));
+document.querySelectorAll("#typeSeg button").forEach(b=>{
+  const icon=document.querySelector(`#quick [data-quick="${b.dataset.type}"] i`);
+  if(icon) b.prepend(icon.cloneNode(true));
+  b.addEventListener("click",()=>setType(b.dataset.type));
+});
 
 function syncForm(){
   const s=SKU[$("skuSel").value];
+  const pick=!s && F.pick && F.pick.length>1;
+  $("skuPick").hidden=!pick;
+  $("skuPick").innerHTML = pick ? `<div class="note info">This serial fits more than one model. Tap the right one:</div><div class="chips" style="flex-wrap:wrap">${F.pick.map(id=>`<button type="button" data-pickd="${esc(id)}">${esc(SKU[id].name)}</button>`).join("")}</div>` : "";
   $("serialBlock").hidden = !(!s || s.serial);
   $("serialHint").hidden = !!s;
   $("qtyBlock").hidden = !(s && !s.serial);
@@ -792,6 +883,7 @@ function syncForm(){
       if(F.type==="receive" && rec && rec.inStock){ bad=true; warns.push(`${v} is already in your stock.`); }
       if(F.type!=="receive" && !(rec && rec.inStock)) warns.push(`${v} isn't in your stock records. It will still be logged.`);
       if(s && rec && rec.sku!==s.id && rec.inStock) warns.push(`${v} is in your stock as ${SKU[rec.sku].name}.`);
+      else if(s){ const r=ruleSkus(v); if(r && r.length && !r.includes(s.id)) warns.push(`${v} looks like a ${r.map(id=>SKU[id].name).join(" or ")}, not a ${s.name}. Check the item.`); }
       return `<span class="chip ${bad?"bad":""}"><span class="mono">${esc(v)}</span><button type="button" data-rm="${i}" aria-label="Remove ${esc(v)}">✕</button></span>`;
     }).join("");
     $("serialWarn").innerHTML = warns.map(w=>`<div class="note warn">${esc(w)}</div>`).join("");
@@ -803,19 +895,23 @@ function syncForm(){
       : `<div class="note info">${have} on record.</div>`) : "";
   }
 }
-$("skuSel").addEventListener("change",()=>{ const s=SKU[$("skuSel").value]; if(s && !s.serial) F.serials=[]; syncForm(); });
+$("skuSel").addEventListener("change",()=>{ const s=SKU[$("skuSel").value]; if(s && !s.serial) F.serials=[]; if(s) F.pick=null; syncForm(); });
+$("skuPick").addEventListener("click",e=>{ const b=e.target.closest("[data-pickd]"); if(!b) return; $("skuSel").value=b.dataset.pickd; F.pick=null; syncForm(); });
 $("qtyIn").addEventListener("input",syncForm);
 $("qtyMinus").addEventListener("click",()=>{ $("qtyIn").value=Math.max(1,(Number($("qtyIn").value)||1)-1); syncForm(); });
 $("qtyPlus").addEventListener("click",()=>{ $("qtyIn").value=(Number($("qtyIn").value)||0)+1; syncForm(); });
 $("serialList").addEventListener("click",e=>{ const b=e.target.closest("[data-rm]"); if(b){ F.serials.splice(Number(b.dataset.rm),1); syncForm(); }});
 function addSerial(v){
   v=String(v||"").trim(); if(!v) return false;
+  if(isMac(v)){ toast(MAC_MSG); return false; }
   if(F.serials.some(x=>keyOf(x)===keyOf(v))){ toast("Already on this list"); return false; }
   F.serials.push(v);
-  const cur=SKU[$("skuSel").value], g=guessSku(v);
-  if(g && (!cur || (F.serials.length===1 && g.how==="record" && g.sku!==cur.id))){
-    $("skuSel").value=g.sku;
+  const cur=SKU[$("skuSel").value], g=guessSku(v), first=F.serials.length===1;
+  if(g && g.sku && (!cur || (first && g.how!=="pattern" && g.sku!==cur.id))){
+    $("skuSel").value=g.sku; F.pick=null;
     toast(`Item set to ${SKU[g.sku].name}`+(g.how==="pattern"?" (matches your other serials)":""));
+  } else if(g && g.skus && first && (!cur || !g.skus.includes(cur.id))){
+    $("skuSel").value=""; F.pick=g.skus; toast("Pick which model this is");
   }
   syncForm(); return true;
 }
@@ -859,7 +955,7 @@ $("logForm").addEventListener("submit", async e=>{
   gsGestureRefresh();
   const s=SKU[$("skuSel").value]; const err=m=>{ $("formErr").innerHTML=`<div class="note warn">${esc(m)}</div>`; };
   $("formErr").innerHTML="";
-  if(!s) return err(F.serials.length ? "Stock Tracker doesn't recognize this serial yet. Choose the item once and it will next time." : "Choose an item first.");
+  if(!s) return err(F.pick ? "Tap which model this is, above." : F.serials.length ? "Stock Tracker doesn't recognize this serial. Choose the item." : "Choose an item first.");
   const pending=$("serialIn").value.trim(); if(s.serial && pending){ addSerial(pending); $("serialIn").value=""; }
   if(s.serial && !F.serials.length) return err("Scan or type at least one serial number.");
   if(s.serial && F.type==="receive"){
@@ -885,7 +981,7 @@ $("logForm").addEventListener("submit", async e=>{
   let ok=true; rows.forEach(r=>{ if(!Store.add(r)) ok=false; });
   if(ok){
     toast(`${TYPES[F.type].label} ${s.serial ? rows.length+" unit"+(rows.length>1?"s":"") : qty+" × "+s.name}`);
-    F.serials=[]; $("qtyIn").value=1; $("noteIn").value=""; $("accountIn").value=""; $("toIn").value=""; $("rmaIn").value="";
+    F.serials=[]; F.pick=null; $("qtyIn").value=1; $("noteIn").value=""; $("accountIn").value=""; $("toIn").value=""; $("rmaIn").value="";
     if(F.type!=="receive") $("skuSel").value="";
   }
   saving=false; $("saveBtn").disabled=false; $("saveBtn").textContent=TYPES[F.type].save;
@@ -913,7 +1009,7 @@ $("camInput").addEventListener("change",async ()=>{
   $("scanResults").innerHTML=found.map((r,i)=>`<button class="result" data-pick="${i}"><span class="mono">${esc(r.text)}</span><small>${esc(r.format)}</small></button>`).join("");
   $("scanResults").onclick=e=>{ const b=e.target.closest("[data-pick]"); if(!b) return;
     const pick=found[Number(b.dataset.pick)];
-    if(photoTarget==="count"){ countAdd(pick.text); b.disabled=true; b.style.opacity=".5"; return; }
+    if(photoTarget==="count"){ if(countAdd(pick.text)==="mac"){ toast(MAC_MSG); return; } b.disabled=true; b.style.opacity=".5"; return; }
     if(addSerial(pick.text)) toast("Added "+pick.text);
     $("scanSheet").hidden=true; };
 });
@@ -1091,7 +1187,7 @@ async function saveFile(file){
     try{ await dl.save({filename:file.name, data:file}); return "saved"; }
     catch(e){ if(e && e.code==="declined"){ const a=new Error("declined"); a.name="AbortError"; throw a; } throw e; }
   }
-  // iPhone: share sheet → Save to Files → OneDrive. Android's Chrome won't share Excel files,
+  // iPhone: share sheet → Save to Files or open in Excel. Android's Chrome won't share Excel files,
   // so anything other than the person closing the share sheet falls through to a normal download.
   if(PLAT!=="android" && navigator.canShare){
     let ok=false; try{ ok=navigator.canShare({files:[file]}); }catch(e){}
@@ -1104,7 +1200,10 @@ async function saveFile(file){
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),30000);
   return "downloaded";
 }
-function fileName(){ const who=ME.name.replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,""); return `Stock-Tracker-${who||"Backup"}.xlsx`; }
+function fileName(){
+  const who=ME.name.replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,""), d=new Date();
+  return `Stock-Tracker-${who?who+"-":""}${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}.xlsx`;
+}
 function onHandRows(){
   const out=[["Item","Serial / quantity","Received"]];
   SKUS.forEach(sk=>{ if(sk.serial) STOCK.bySku[sk.id].forEach(i=>out.push([sk.name,i.serial,new Date(i.ts).toLocaleDateString()])); else if(STOCK.qty[sk.id]) out.push([sk.name,"Qty "+STOCK.qty[sk.id],""]); });
@@ -1125,7 +1224,7 @@ function buildWorkbook(){
 }
 async function exportExcel(btn){
   if(!window.XLSX){ toast("Excel tools didn't load. Connect to the internet and reopen Stock Tracker."); return; }
-  if(!Store.events.length){ toast("Nothing to back up yet."); return; }
+  if(!Store.events.length){ toast("Nothing to export yet."); return; }
   if(!ME.name){ setTab("backup"); $("nameIn").focus(); toast("Add your name first so your file is easy to find."); return; }
   const name=fileName();
   const file=new File([buildWorkbook()], name, {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
@@ -1133,25 +1232,29 @@ async function exportExcel(btn){
   try{
     const how=await saveFile(file);
     lsSet(K.backup, Date.now()); lsSet(K.backupIds, Store.events.length);
-    toast(how==="downloaded" ? `Saved ${name} to Downloads. Now share it to OneDrive.` : "Backup ready. Make sure it went to OneDrive."); paintBackup();
+    toast(how==="downloaded" ? `Saved ${name} to Downloads.` : "Excel file ready"); paintBackup();
   }catch(e){
     if(e && e.name==="AbortError") return; // closed the share sheet
-    toast("Couldn't create the backup. Try again.");
+    toast("Couldn't create the Excel file. Try again.");
   }finally{ if(btn) btn.disabled=false; }
 }
 function paintBackup(){
   const last=lsGet(K.backup,null), n=Store.events.length;
+  $("bkCount").textContent=n; $("bkLast").textContent = last ? fmtFull(last) : "Never";
+  if(GS.connected && gsAvailable()){ paintGoogle(); return; }   // Google Sheets runs the status
+  const canGoogle=gsAvailable();
   const newSince=Math.max(0, n-(lsGet(K.backupIds,0)||0));
   const days=last?Math.floor((Date.now()-last)/864e5):null;
-  const due = n>0 && (days===null || days>=7 || newSince>=25);
-  const card=$("backupCard"); card.hidden=!n; card.classList.toggle("due",due);
-  $("backupH").textContent = days===null ? "Not backed up yet" : days===0 ? "Backed up today" : `Last backup ${days} day${days===1?"":"s"} ago`;
-  $("backupSub").textContent = due ? (newSince ? `${newSince} entr${newSince===1?"y":"ies"} only on this phone. Save to OneDrive.` : "Save a fresh copy to OneDrive.")
-                                   : newSince ? `${newSince} new since your last backup.` : "Your OneDrive copy is up to date.";
-  $("mode").textContent = !n ? "Nothing yet" : days===null ? "Not backed up" : due ? "Backup due" : "Backed up";
-  $("mode").className = "mode" + (n && due ? " due" : "");
-  $("bkCount").textContent=n; $("bkNew").textContent=newSince;
-  $("bkLast").textContent = last ? fmtFull(last) : "Never";
+  // with Google available, any entries are "not backed up"; without it, an export within a week counts
+  const due = n>0 && (canGoogle || days===null || days>=7 || newSince>=25);
+  const card=$("backupCard"); card.hidden=!due; card.classList.toggle("due",due);
+  $("backupH").textContent = "Not backed up";
+  $("backupSub").textContent = canGoogle ? `Your ${n} entr${n===1?"y is":"ies are"} only on this phone. Connect Google Sheets to back ${n===1?"it":"them"} up automatically.`
+                                         : `${newSince||n} entr${(newSince||n)===1?"y is":"ies are"} only on this phone. Export to Excel to keep a copy.`;
+  $("backupAct").innerHTML = canGoogle ? `<button class="btn sm brand" type="button" data-goto="backup">Set Up</button>`
+                                       : `<button class="btn sm brand" type="button" data-backup>Export</button>`;
+  $("mode").textContent = !n ? "Nothing yet" : due ? "Not backed up" : "Exported";
+  $("mode").className = "mode" + (due ? " due" : "");
   paintGoogle();
 }
 
@@ -1171,6 +1274,7 @@ function rowsToEntries(rows){
     const type=TYPE_BY_LABEL[cellStr(r["Action"]).toLowerCase()];
     if(!id || !ts || !type) return;
     let sku=cellStr(r["Item code"]);
+    if(LEGACY_SKU[sku]) sku=LEGACY_SKU[sku];
     if(!SKU[sku]){ const hit=SKUS.find(s=>s.name===cellStr(r["Item"])); sku=hit?hit.id:sku; }
     const serial=cellStr(r["Serial"]), account=cellStr(r["Customer account"]);
     const num=v=>{ const n=parseFloat(cellStr(v)); return isFinite(n)?n:null; };
@@ -1227,18 +1331,19 @@ $("countStart").addEventListener("click",()=>{ COUNT={startedAt:Date.now(), item
 function countAdd(code){
   code=String(code||"").trim(); const key=keyOf(code); if(!key) return "empty";
   if(!COUNT) return "none";
+  if(isMac(code)) return "mac";
   if(COUNT.items.some(i=>i.key===key)) return "dup";
   COUNT.items.unshift({code, key, ts:Date.now()}); saveCount(); renderCount(); return "added";
 }
 function countRemove(key){ COUNT.items=COUNT.items.filter(i=>i.key!==key); saveCount(); renderCount(); }
-$("countAddBtn").addEventListener("click",()=>{ const r=countAdd($("countIn").value); if(r==="dup") toast("Already counted"); if(r!=="empty") $("countIn").value=""; });
+$("countAddBtn").addEventListener("click",()=>{ const r=countAdd($("countIn").value); if(r==="dup") toast("Already counted"); if(r==="mac"){ toast(MAC_MSG); return; } if(r!=="empty") $("countIn").value=""; });
 $("countIn").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("countAddBtn").click(); }});
 $("countPhotoBtn").addEventListener("click",()=>{ photoTarget="count"; $("camInput").value=""; $("camInput").click(); });
 
 /* what this phone's records say about a serial */
 function recordNote(key){
   const evs=Store.events.filter(e=>!e.voided && e.serialKey===key);
-  if(!evs.length){ const g=guessSku(key); return {text:"No record on this phone", item:g?SKU[g.sku].name+" (likely)":""}; }
+  if(!evs.length){ const g=guessSku(key); return {text:"No record on this phone", item:g?guessLabel(g):""}; }
   const e=evs[0]; const item=(SKU[e.sku]&&SKU[e.sku].name)||e.skuName||"";
   const T=(TYPES[e.type]||{label:e.type}).label;
   const extra = e.account?` · Acct ${e.account}` : e.toTech?` · To ${e.toTech}` : e.rma?` · RMA ${e.rma}` : e.from?` · From ${e.from}` : "";
@@ -1513,14 +1618,16 @@ $("liveShoot").addEventListener("click",async()=>{
   const key=keyOf(text);
   let item="", warn="", blocked=false;
   if(LIVE.mode==="log"){
-    if(F.serials.some(x=>keyOf(x)===key)){ warn="Already on this list"; blocked=true; }
+    if(isMac(text)){ warn=MAC_MSG; blocked=true; }
+    else if(F.serials.some(x=>keyOf(x)===key)){ warn="Already on this list"; blocked=true; }
     else{
       const rec=STOCK.serials.get(key), g=guessSku(text), cur=SKU[$("skuSel").value];
-      item = g ? SKU[g.sku].name : cur ? cur.name : "Item not recognized. Pick it after.";
+      item = g ? guessLabel(g)+(g.skus?" (pick after)":"") : cur ? cur.name : "Item not recognized. Pick it after.";
       warn = F.type==="receive" && rec && rec.inStock ? "Already in your stock" : F.type!=="receive" && !(rec && rec.inStock) ? "Not in your stock records" : "";
     }
   } else {
-    if(COUNT && COUNT.items.some(i=>i.key===key)){ warn="Already counted"; blocked=true; }
+    if(isMac(text)){ warn=MAC_MSG; blocked=true; }
+    else if(COUNT && COUNT.items.some(i=>i.key===key)){ warn="Already counted"; blocked=true; }
     else{ const note=recordNote(key); item=note.item||""; warn=note.text==="No record on this phone"?"No record on this phone":""; }
   }
   $("liveLast").classList.add("pending");
@@ -1730,7 +1837,7 @@ if("serviceWorker" in navigator && location.protocol==="https:"){
 function renderAll(){ STOCK=computeStock(); renderStock(); renderHistory(); syncForm(); paintBackup(); renderCount(); }
 paintHeader(); showSetup(); paintLoc(); setType("receive"); renderAll();
 if(GS.connected && gsAvailable()){ if(gsTokenOk() && gsPending()) gsSync(); else if(!gsTokenOk()){ gsErr="auth"; paintGoogle(); } }
-try{ const t=sessionStorage.getItem("techstock.tab"); if(t && $("p-"+t)) setTab(t); }catch(e){}
+setTab("log");
 })();
 </script>
 </body>
