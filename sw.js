@@ -1,9 +1,13 @@
 // Stock Tracker offline cache: lets the app open with no signal after the first visit.
 // Bump VERSION whenever you upload a new index.html so phones pick up the change.
-const VERSION = "techstock-v8";
+const VERSION = "techstock-v9";
 const CORE = [
   "./",
   "./index.html",
+  "./manifest.json",
+  "./icon-192.png",
+  "./icon-512.png",
+  "./apple-touch-icon.png",
   "https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
 ];
