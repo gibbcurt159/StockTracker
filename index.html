@@ -1587,7 +1587,7 @@ function gsAuth(prompt){
   if(!gsInitClient()) return Promise.reject(new Error("Google sign-in didn't load. Check your connection and reload."));
   gsLastPrompt=Date.now();
   return new Promise((res,rej)=>{ gsAuthWait={res,rej};
-    const o={prompt}; if(GS.email) o.hint=GS.email;
+    const o={prompt}; if(prompt==="" && GS.email) o.hint=GS.email;
     gsClient.requestAccessToken(o); });
 }
 function gsGestureRefresh(){
@@ -1696,7 +1696,7 @@ async function gsSyncNow(){
 document.addEventListener("click", async e=>{
   if(e.target.closest("[data-gssync]")){ gsSyncNow(); return; }
   if(e.target.closest("#gsConnect")){
-    try{ await gsAuth("consent"); }
+    try{ Object.assign(GS,{email:"", sheetId:""}); gsSave(); await gsAuth("select_account consent"); }
     catch(err){ toast("Google sign-in didn't finish. Try again."); return; }
     GS.connected=true; GS.rev++; gsErr=""; gsSave();
     try{ const u=await gapi("https://www.googleapis.com/oauth2/v3/userinfo"); GS.email=u.email||""; gsSave(); }catch(err){}
@@ -1706,7 +1706,7 @@ document.addEventListener("click", async e=>{
   }
   if(e.target.closest("#gsDisconnect")){
     try{ if(GS.token && window.google && google.accounts && google.accounts.oauth2) google.accounts.oauth2.revoke(GS.token, ()=>{}); }catch(err){}
-    Object.assign(GS,{connected:false, token:"", exp:0}); gsErr=""; gsSave();
+    Object.assign(GS,{connected:false, token:"", exp:0, email:"", sheetId:"", synced:0}); gsErr=""; gsSave();
     paintBackup(); paintGoogle(); toast("Disconnected. Your Google Sheet stays in your Drive.");
   }
 });
