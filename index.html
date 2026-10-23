@@ -337,6 +337,7 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
         <button type="button" class="btn brand block" id="scanBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><path d="M8 8v8M11 8v8M14 8v8M17 8v8"/></svg>
           Scan Barcode</button>
+        <button type="button" class="btn ghost" id="photoScanBtn" style="align-self:center">Camera won't open? Scan from a photo</button>
         <div class="serials" id="serialList"></div>
         <div id="serialWarn"></div>
       </div>
@@ -492,7 +493,7 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
 <div class="scanner" id="liveScanner" hidden role="dialog" aria-modal="true" aria-label="Count scanner">
   <video id="liveVideo" playsinline muted autoplay></video>
   <div class="aim" id="aim"></div>
-  <div class="scan-top"><b>Counting</b><span class="scan-n" id="liveN">0</span></div>
+  <div class="scan-top"><b id="liveTitle">Counting</b><span class="scan-n" id="liveN">0</span></div>
   <div class="scan-bot">
     <div class="scan-hint" id="liveHint">Line up the red line with the serial number barcode.</div>
     <div class="scan-last" id="liveLast"><small>Scanned serials show here</small></div>
@@ -663,7 +664,7 @@ function setTab(t){
   ["stock","log","history","count","backup"].forEach(p=>$("p-"+p).hidden = p!==t);
   try{ sessionStorage.setItem("techstock.tab",t); }catch(e){}
   if(t==="log") refreshLocation(false);
-  if(t!=="count") stopLiveScan();
+  stopLiveScan();
   window.scrollTo(0,0);
 }
 document.querySelectorAll(".tabs [role=tab]").forEach(b=>b.addEventListener("click",()=>setTab(b.dataset.tab)));
@@ -851,7 +852,8 @@ $("logForm").addEventListener("submit", async e=>{
 
 /* ---------- barcode scanning from a photo ---------- */
 let photoTarget="log";
-$("scanBtn").addEventListener("click",()=>{ photoTarget="log"; $("camInput").value=""; $("camInput").click(); });
+$("scanBtn").addEventListener("click",()=>startLiveScan("log"));
+$("photoScanBtn").addEventListener("click",()=>{ photoTarget="log"; $("camInput").value=""; $("camInput").click(); });
 $("retakeBtn").addEventListener("click",()=>{ $("camInput").value=""; $("camInput").click(); });
 $("camInput").addEventListener("change",async ()=>{
   const f=$("camInput").files && $("camInput").files[0]; if(!f) return;
@@ -1291,56 +1293,98 @@ $("countExport").addEventListener("click",async()=>{
   }catch(e){ if(!(e&&e.name==="AbortError")) toast("Couldn't create the count file. Try again."); }
 });
 
-/* continuous camera scanning: reads only the barcode under the red line */
-let LIVE={stream:null, timer:null, busy:false, last:"", lastAt:0, audio:null, reader:null};
+/* live camera scanner: reads only the barcode under the red line.
+   mode "log" adds serials to the Log form; mode "count" adds them to the count. */
+let LIVE={stream:null, timer:null, busy:false, last:"", lastAt:0, audio:null, reader:null, bd:null, mode:"count"};
 function beep(ok){
   try{ const ctx=LIVE.audio; if(!ctx) return; const o=ctx.createOscillator(), g=ctx.createGain();
     o.frequency.value=ok?1760:520; g.gain.value=.12; o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+(ok?.08:.18)); }catch(e){}
+  try{ if(navigator.vibrate) navigator.vibrate(ok?40:[30,60,30]); }catch(e){}
 }
 function liveFlash(cls){ const a=$("aim"); a.classList.remove("hit","dup"); void a.offsetWidth; a.classList.add(cls); setTimeout(()=>a.classList.remove(cls),450); }
-$("liveScanBtn").addEventListener("click",startLiveScan);
+function liveCount(){ return LIVE.mode==="log" ? F.serials.length : (COUNT?COUNT.items.length:0); }
+function paintLiveCount(){ $("liveN").textContent=liveCount(); $("liveUndo").disabled=!liveCount(); }
+$("liveScanBtn").addEventListener("click",()=>startLiveScan("count"));
 $("liveDone").addEventListener("click",stopLiveScan);
-$("liveUndo").addEventListener("click",()=>{ if(!COUNT||!COUNT.items.length) return; const it=COUNT.items[0]; countRemove(it.key);
-  $("liveN").textContent=COUNT.items.length; $("liveLast").innerHTML=`<small>Removed</small><span class="mono">${esc(it.code)}</span>`; $("liveUndo").disabled=!COUNT.items.length; });
-async function startLiveScan(){
-  if(!window.ZXing){ toast("Scanner didn't load. Connect to the internet and reopen Stock Tracker."); return; }
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ toast("Live scanning isn't available here. Use the camera button to scan from a photo."); return; }
+$("liveUndo").addEventListener("click",()=>{
+  let code="";
+  if(LIVE.mode==="log"){ if(!F.serials.length) return; code=F.serials.pop(); syncForm(); }
+  else { if(!COUNT||!COUNT.items.length) return; const it=COUNT.items[0]; code=it.code; countRemove(it.key); }
+  LIVE.last=""; $("liveLast").innerHTML=`<small>Removed</small><span class="mono">${esc(code)}</span>`; paintLiveCount();
+});
+async function makeDetector(){
+  if(!("BarcodeDetector" in window)) return null;
+  try{
+    const want=["code_128","code_39","code_93","ean_13","upc_a","itf","data_matrix","qr_code"];
+    const have=await window.BarcodeDetector.getSupportedFormats();
+    const f=want.filter(x=>have.includes(x)); return f.length ? new window.BarcodeDetector({formats:f}) : null;
+  }catch(e){ return null; }
+}
+async function startLiveScan(mode){
+  LIVE.mode=mode||"count";
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ toast("Live scanning isn't available here. Scan from a photo instead."); return; }
   try{ LIVE.audio = LIVE.audio || new (window.AudioContext||window.webkitAudioContext)(); LIVE.audio.resume(); }catch(e){}
   try{
     LIVE.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}, width:{ideal:1920}, height:{ideal:1080}}, audio:false});
-  }catch(e){ toast(e&&e.name==="NotAllowedError" ? HELP.cam : "Couldn't start the camera."); return; }
-  const v=$("liveVideo"); v.srcObject=LIVE.stream; $("liveScanner").hidden=false;
+  }catch(e){ toast(e&&e.name==="NotAllowedError" ? HELP.cam : "Couldn't start the camera. Scan from a photo instead."); return; }
+  LIVE.bd = LIVE.bd || await makeDetector();
+  if(!LIVE.bd && !window.ZXing){ stopLiveScan(); toast("Scanner didn't load. Connect to the internet and reopen Stock Tracker."); return; }
+  if(!LIVE.bd){
+    const Z=window.ZXing, BF=Z.BarcodeFormat, hints=new Map();
+    hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[BF.CODE_128,BF.CODE_39,BF.CODE_93,BF.EAN_13,BF.UPC_A,BF.ITF,BF.DATA_MATRIX,BF.QR_CODE].filter(x=>x!==undefined));
+    LIVE.reader=new Z.MultiFormatReader(); LIVE.reader.setHints(hints);
+  }
+  const v=$("liveVideo"); v.srcObject=LIVE.stream;
+  $("liveTitle").textContent = LIVE.mode==="log" ? TYPES[F.type].title : "Counting";
+  $("liveHint").textContent = LIVE.mode==="log" && F.type==="deploy" ? "Line up the red line with the serial number barcode. The scanner closes after one unit."
+                                                                    : "Line up the red line with each serial number barcode.";
+  $("liveLast").innerHTML=`<small>Scanned serials show here</small>`; LIVE.last="";
+  $("liveScanner").hidden=false;
   try{ await v.play(); }catch(e){}
-  $("liveN").textContent=COUNT.items.length; $("liveUndo").disabled=!COUNT.items.length;
-  const Z=window.ZXing, BF=Z.BarcodeFormat, hints=new Map();
-  hints.set(Z.DecodeHintType.POSSIBLE_FORMATS,[BF.CODE_128,BF.CODE_39,BF.CODE_93,BF.EAN_13,BF.UPC_A,BF.ITF,BF.DATA_MATRIX,BF.QR_CODE].filter(x=>x!==undefined));
-  LIVE.reader=new Z.MultiFormatReader(); LIVE.reader.setHints(hints);
+  paintLiveCount();
   const c=document.createElement("canvas"), g=c.getContext("2d",{willReadFrequently:true});
-  LIVE.timer=setInterval(()=>{
-    if(LIVE.busy || !v.videoWidth) return; LIVE.busy=true;
+  LIVE.timer=setInterval(async()=>{
+    if(LIVE.busy || !v.videoWidth || !LIVE.stream) return; LIVE.busy=true;
     try{
       // map the on-screen aim box to the video frame (video is object-fit: cover)
       const vw=v.videoWidth, vh=v.videoHeight, ew=v.clientWidth, eh=v.clientHeight;
       const sc=Math.max(ew/vw, eh/vh), ox=(vw*sc-ew)/2, oy=(vh*sc-eh)/2;
       const ar=$("aim").getBoundingClientRect(), vr=v.getBoundingClientRect();
-      let sx=(ar.left-vr.left+ox)/sc, sy=(ar.top-vr.top+oy)/sc, sw=ar.width/sc, sh=ar.height/sc;
+      const sx=(ar.left-vr.left+ox)/sc, sy=(ar.top-vr.top+oy)/sc, sw=ar.width/sc, sh=ar.height/sc;
       const k=Math.min(1, 1000/sw); c.width=Math.round(sw*k); c.height=Math.round(sh*k);
       g.drawImage(v, sx, sy, sw, sh, 0, 0, c.width, c.height);
-      const r=LIVE.reader.decodeWithState(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(c))));
-      onLiveCode(r.getText());
+      if(LIVE.bd){
+        const r=await LIVE.bd.detect(c);
+        if(r && r.length) onLiveCode(r[0].rawValue);
+      } else {
+        const Z=window.ZXing;
+        const r=LIVE.reader.decodeWithState(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(c))));
+        onLiveCode(r.getText());
+      }
     }catch(e){ /* nothing readable in this frame */ }
     finally{ LIVE.busy=false; }
-  }, 180);
+  }, 150);
 }
 function onLiveCode(text){
-  const now=Date.now(); text=String(text||"").trim(); if(!text) return;
+  const now=Date.now(); text=String(text||"").trim(); if(!text || !LIVE.stream) return;
   if(text===LIVE.last && now-LIVE.lastAt<2500) return;   // same label still in view
   LIVE.last=text; LIVE.lastAt=now;
+  if(LIVE.mode==="log"){
+    if(F.serials.some(x=>keyOf(x)===keyOf(text))){ beep(false); liveFlash("dup"); $("liveLast").innerHTML=`<span class="mono">${esc(text)}</span><small>Already on this list</small>`; return; }
+    addSerial(text);
+    const s=SKU[$("skuSel").value], rec=STOCK.serials.get(keyOf(text));
+    const warn = F.type==="receive" && rec && rec.inStock ? "Already in your stock" : F.type!=="receive" && !(rec && rec.inStock) ? "Not in your stock records" : "";
+    beep(!warn); liveFlash(warn?"dup":"hit");
+    $("liveLast").innerHTML=`<span class="mono">${esc(text)}</span><small>${esc([s?s.name:"Item not recognized, pick it after",warn].filter(Boolean).join(" · "))}</small>`;
+    paintLiveCount();
+    if(F.type==="deploy") setTimeout(stopLiveScan, 700);
+    return;
+  }
   const res=countAdd(text), note=recordNote(keyOf(text));
   if(res==="added"){ beep(true); liveFlash("hit");
     $("liveLast").innerHTML=`<span class="mono">${esc(text)}</span><small>${esc(note.item||note.text)}</small>`; }
   else if(res==="dup"){ beep(false); liveFlash("dup"); $("liveLast").innerHTML=`<span class="mono">${esc(text)}</span><small>Already counted</small>`; }
-  $("liveN").textContent=COUNT.items.length; $("liveUndo").disabled=!COUNT.items.length;
+  paintLiveCount();
 }
 function stopLiveScan(){
   clearInterval(LIVE.timer); LIVE.timer=null;
