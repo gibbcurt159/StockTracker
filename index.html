@@ -603,7 +603,7 @@ const HELP = {
     cam:"Camera is blocked. In Safari tap aA › Website Settings › Camera › Allow, then try again."
   },
   android: {
-    steps:["Tap <b>Save to Excel</b>, then pick <b>OneDrive</b> from the share menu.","Choose your backup folder and tap <b>Upload</b>.","If OneDrive asks, choose <b>Replace</b>, so you always have one up-to-date file."],
+    steps:["Tap <b>Save to Excel</b>. The file saves to your <b>Downloads</b>.","Open the <b>OneDrive</b> app, go to your backup folder, tap <b>+</b> › <b>Upload</b> and pick the file from Downloads.","If OneDrive asks, choose <b>Replace</b>, then delete the copy in Downloads so the next backup keeps the same name."],
     home:"Add Stock Tracker to your home screen: tap <b>⋮</b> in Chrome, then <b>Add to Home screen</b> or <b>Install app</b>. It opens like an app and keeps your data more reliably.",
     restore:"Tap Choose Backup File, open the menu, pick <b>OneDrive</b> and select your file.",
     loc:"Location is off. In Chrome, tap the icon beside the web address › Permissions › Location › Allow.",
@@ -1072,12 +1072,21 @@ function getDL(){ if(!DLP) DLP=(window.claude && typeof window.claude.use==="fun
 async function saveFile(file){
   const dl=await getDL();
   if(dl){
-    try{ await dl.save({filename:file.name, data:file}); return; }
+    try{ await dl.save({filename:file.name, data:file}); return "saved"; }
     catch(e){ if(e && e.code==="declined"){ const a=new Error("declined"); a.name="AbortError"; throw a; } throw e; }
   }
-  if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file]}); return; } // iPhone: Save to Files → OneDrive
+  // iPhone: share sheet → Save to Files → OneDrive. Android's Chrome won't share Excel files,
+  // so anything other than the person closing the share sheet falls through to a normal download.
+  if(PLAT!=="android" && navigator.canShare){
+    let ok=false; try{ ok=navigator.canShare({files:[file]}); }catch(e){}
+    if(ok){
+      try{ await navigator.share({files:[file]}); return "shared"; }
+      catch(e){ if(e && e.name==="AbortError") throw e; }
+    }
+  }
   const a=document.createElement("a"); a.href=URL.createObjectURL(file); a.download=file.name;
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),10000);
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),30000);
+  return "downloaded";
 }
 function fileName(){ const who=ME.name.replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,""); return `Stock-Tracker-${who||"Backup"}.xlsx`; }
 function buildWorkbook(){
@@ -1102,9 +1111,9 @@ async function exportExcel(btn){
   const file=new File([buildWorkbook()], name, {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
   if(btn) btn.disabled=true;
   try{
-    await saveFile(file);
+    const how=await saveFile(file);
     lsSet(K.backup, Date.now()); lsSet(K.backupIds, Store.events.length);
-    toast("Backup ready. Make sure it went to OneDrive."); paintBackup();
+    toast(how==="downloaded" ? `Saved ${name} to Downloads. Now share it to OneDrive.` : "Backup ready. Make sure it went to OneDrive."); paintBackup();
   }catch(e){
     if(e && e.name==="AbortError") return; // closed the share sheet
     toast("Couldn't create the backup. Try again.");
@@ -1328,8 +1337,8 @@ $("countExport").addEventListener("click",async()=>{
   const name=`Stock-Tracker-Count-${who?who+"-":""}${stamp}.xlsx`;
   const file=new File([XLSX.write(wb,{bookType:"xlsx",type:"array"})], name, {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
   try{
-    await saveFile(file);
-    toast("Count file ready");
+    const how=await saveFile(file);
+    toast(how==="downloaded" ? `Saved ${name} to Downloads.` : "Count file ready");
   }catch(e){ if(!(e&&e.name==="AbortError")) toast("Couldn't create the count file. Try again."); }
 });
 
