@@ -59,16 +59,16 @@ button{cursor:pointer}
 .mark{width:34px;height:34px;border-radius:9px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none}
 .mark svg{width:20px;height:20px}
 .top h1{margin:0;font:700 1.2rem/1.1 var(--f-display);letter-spacing:.01em}
-.who{font-size:.8rem;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who{font-size:.82rem;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top-txt{min-width:0;flex:1}
-.mode{font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:99px;background:rgba(255,255,255,.12);white-space:nowrap}
+.mode{font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:99px;background:rgba(255,255,255,.12);white-space:nowrap}
 .mode.local{background:rgba(242,154,107,.25)}
 
 main{max-width:640px;margin:0 auto;padding:16px 16px calc(96px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px}
 .panel{display:flex;flex-direction:column;gap:14px}
 h2{margin:0;font:700 1.35rem/1.15 var(--f-display);text-wrap:balance}
 h3{margin:0;font:600 1rem/1.2 var(--f-display);letter-spacing:.01em}
-.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.eyebrow{font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 
 /* quick actions */
 .quick{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
@@ -81,13 +81,13 @@ h3{margin:0;font:600 1rem/1.2 var(--f-display);letter-spacing:.01em}
 .t-transfer{--tc:var(--xfer);--tb:var(--xfer-bg)} .t-return,.t-rma{--tc:var(--ret);--tb:var(--ret-bg)}
 .t-recycle{--tc:var(--muted);--tb:var(--rec-bg)}
 .qa i,.pill{background:var(--tb);color:var(--tc)}
-.pill{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:.75rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:99px;white-space:nowrap}
 
 /* summary */
 .summary{display:flex;gap:10px}
 .stat{flex:1;background:var(--surface);border-radius:var(--r);padding:12px 14px;box-shadow:var(--shadow)}
 .stat b{display:block;font:700 1.6rem/1 var(--f-display);font-variant-numeric:tabular-nums}
-.stat span{font-size:.8rem;color:var(--muted)}
+.stat span{font-size:.82rem;color:var(--muted)}
 
 /* inputs */
 .search{position:relative}
@@ -107,12 +107,12 @@ input:focus,select:focus,textarea:focus{outline:none;box-shadow:inset 0 0 0 2px 
 .btn.brand{background:var(--brand-2);color:#fff}
 .btn.ghost{background:transparent;color:var(--muted);padding:8px 10px}
 .btn.danger{background:var(--warn-bg);color:var(--warn)}
-.btn.block{width:100%;padding:15px;font-size:1.05rem}
+.btn.block{width:100%;padding:15px;font-size:1.1rem}
 .btn:disabled{opacity:.5;cursor:default}
 
 /* segmented */
 .seg{display:grid;grid-template-columns:repeat(5,1fr);background:var(--surface-2);border-radius:var(--r);padding:4px;gap:4px}
-.seg button{border:0;background:transparent;border-radius:9px;padding:8px 0 7px;font-weight:600;font-size:.8rem;min-width:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px}
+.seg button{border:0;background:transparent;border-radius:9px;padding:8px 0 7px;font-weight:600;font-size:.82rem;min-width:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px}
 .seg button i{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-style:normal;background:var(--tb);color:var(--tc)}
 .seg button i svg{width:16px;height:16px}
 .theme-seg{grid-template-columns:repeat(3,1fr)}
@@ -120,14 +120,14 @@ input:focus,select:focus,textarea:focus{outline:none;box-shadow:inset 0 0 0 2px 
 .line-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
 .line-main b{font-weight:600;line-height:1.25}
 .line-main .mono{overflow-wrap:anywhere}
-.line-main small{font-size:.8rem;color:var(--muted)}
+.line-main small{font-size:.82rem;color:var(--muted)}
 .line-main small.warn{color:var(--warn)}
 .line .x{border:0;background:transparent;color:var(--muted);width:32px;height:32px;border-radius:50%;flex:none}
 .line .chips{flex-wrap:wrap;overflow:visible}
 .line .chips button{flex:0 1 auto;white-space:normal;text-align:left;max-width:100%}
 .qty.sm button{width:34px;height:34px;font-size:1.1rem}
 .qty.sm span{min-width:2ch;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
-.check{display:flex;gap:10px;align-items:flex-start;font-size:.92rem;font-weight:500;line-height:1.35;cursor:pointer}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:.9rem;font-weight:500;line-height:1.35;cursor:pointer}
 .check input{width:22px;height:22px;flex:none;margin:0;accent-color:var(--brand-2)}
 .mail-box{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;display:flex;flex-direction:column;gap:8px}
 .mail-box pre{margin:0;white-space:pre-wrap;font:inherit;font-size:.9rem;overflow-wrap:anywhere}
@@ -146,10 +146,10 @@ input:focus,select:focus,textarea:focus{outline:none;box-shadow:inset 0 0 0 2px 
 .qty{display:flex;align-items:center;gap:10px}
 .qty button{width:44px;height:44px;border:0;border-radius:var(--r-sm);background:var(--surface-2);font-size:1.3rem;font-weight:600}
 .qty input{width:80px;text-align:center;font-weight:600;font-size:1.1rem}
-.note{font-size:.85rem;border-radius:var(--r-sm);padding:10px 12px}
+.note{font-size:.9rem;border-radius:var(--r-sm);padding:10px 12px}
 .note.warn{background:var(--warn-bg);color:var(--warn)}
 .note.info{background:var(--surface-2);color:var(--muted)}
-.loc{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.loc{display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--muted)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--void);flex:none}
 .dot.ok{background:var(--in)}
 .dot.wait{background:var(--xfer)}
@@ -160,7 +160,7 @@ details.sku{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh
 details.sku summary{list-style:none;display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer}
 details.sku summary::-webkit-details-marker{display:none}
 .sku-name{flex:1;min-width:0;font-weight:600;line-height:1.25}
-.sku-name small{display:block;font-weight:400;font-size:.78rem;color:var(--muted)}
+.sku-name small{display:block;font-weight:400;font-size:.82rem;color:var(--muted)}
 .count{font:700 1.4rem/1 var(--f-display);font-variant-numeric:tabular-nums;min-width:2ch;text-align:right}
 .count.zero{color:var(--void)}
 .sku-body{border-top:1px solid var(--line);padding:6px 14px 12px}
@@ -168,18 +168,18 @@ details.sku summary::-webkit-details-marker{display:none}
 .srow:last-child{border-bottom:0}
 .srow .mono{flex:1;min-width:0;overflow-wrap:anywhere}
 .srow small{color:var(--muted);font-size:.75rem;white-space:nowrap}
-.mini{border:0;border-radius:7px;padding:6px 9px;font-size:.78rem;font-weight:600;background:var(--tb);color:var(--tc)}
+.mini{border:0;border-radius:7px;padding:6px 9px;font-size:.82rem;font-weight:600;background:var(--tb);color:var(--tc)}
 
 /* history */
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
-.chips button{border:0;flex:none;border-radius:99px;padding:7px 12px;font-size:.85rem;font-weight:600;background:var(--surface);color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+.chips button{border:0;flex:none;border-radius:99px;padding:7px 12px;font-size:.9rem;font-weight:600;background:var(--surface);color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
 .chips button[aria-pressed="true"]{background:var(--brand-2);color:#fff;box-shadow:none}
 .day{font-size:.75rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:6px 2px -2px}
 .ev{border:0;width:100%;text-align:left;background:var(--surface);border-radius:var(--r);padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:4px 10px;box-shadow:var(--shadow)}
 .ev-main{min-width:0;display:flex;flex-direction:column;gap:3px}
 .ev-title{font-weight:600;line-height:1.25}
-.ev-sub{font-size:.85rem;color:var(--muted);overflow-wrap:anywhere}
-.ev-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px;font-size:.8rem;color:var(--muted)}
+.ev-sub{font-size:.9rem;color:var(--muted);overflow-wrap:anywhere}
+.ev-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px;font-size:.82rem;color:var(--muted)}
 .ev.voided{opacity:.55}
 .ev.voided .ev-title{text-decoration:line-through}
 
@@ -198,11 +198,11 @@ body.readonly [data-act],body.readonly [data-quick],body.readonly #quick{display
 .person-main span{font-size:.82rem;color:var(--muted)}
 .person-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
 .btn.sm{padding:7px 11px;font-size:.82rem}
-.sync{font-size:.72rem;font-weight:600;color:var(--xfer);white-space:nowrap}
+.sync{font-size:.75rem;font-weight:600;color:var(--xfer);white-space:nowrap}
 .sync.bad{color:var(--warn)}
 .hist-head{display:flex;align-items:center;gap:10px}
 .hist-head h2{flex:1}
-.tabs button{border:0;background:transparent;padding:9px 0 10px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.74rem;font-weight:600;color:var(--muted)}
+.tabs button{border:0;background:transparent;padding:9px 0 10px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.75rem;font-weight:600;color:var(--muted)}
 .tabs svg{width:22px;height:22px}
 .tabs button[aria-selected="true"]{color:var(--ink)}
 .tabs button[aria-selected="true"] svg{color:var(--brand-2)}
@@ -211,15 +211,16 @@ body.readonly [data-act],body.readonly [data-quick],body.readonly #quick{display
 
 /* sheets */
 .sheet{position:fixed;inset:0;z-index:50;background:rgba(0,20,20,.5);display:flex;align-items:flex-end;justify-content:center}
-.sheet-card{background:var(--bg);width:100%;max-width:640px;max-height:88%;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+.sheet-card{background:var(--bg);width:100%;max-width:640px;max-height:88dvh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
 .sheet-head{display:flex;align-items:center;gap:10px}
+@media (min-width:700px){ .sheet{align-items:center;padding:24px} .sheet-card{border-radius:18px;max-height:calc(100dvh - 48px);padding-bottom:18px} }
 .sheet-head h2{flex:1}
 .scan-img{width:100%;max-height:220px;object-fit:contain;border-radius:var(--r-sm);background:#000}
 .result{border:0;width:100%;text-align:left;background:var(--surface);border-radius:var(--r-sm);padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow)}
 .result .mono{flex:1;min-width:0;overflow-wrap:anywhere;font-size:1rem}
-.result small{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}
+.result small{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.05em}
 dl.kv{margin:0;display:grid;grid-template-columns:auto 1fr;gap:8px 14px;background:var(--surface);border-radius:var(--r);padding:14px;box-shadow:var(--shadow)}
-dl.kv dt{color:var(--muted);font-size:.85rem}
+dl.kv dt{color:var(--muted);font-size:.9rem}
 dl.kv dd{margin:0;min-width:0;overflow-wrap:anywhere;font-weight:500}
 dl.kv a{color:var(--brand-2);font-weight:600}
 .spinner{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--brand-2);animation:spin .8s linear infinite;flex:none}
@@ -227,10 +228,10 @@ dl.kv a{color:var(--brand-2);font-weight:600}
 
 .toast{z-index:95!important;border-radius:14px!important;text-align:center;position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-weight:600;font-size:.9rem;max-width:calc(100% - 32px);box-shadow:var(--shadow)}
 @media (prefers-reduced-motion:reduce){.spinner{animation-duration:3s}}
-@media (max-width:380px){.qa{font-size:.72rem}.seg button{font-size:.74rem}}
+@media (max-width:380px){.qa{font-size:.75rem}.seg button{font-size:.75rem}}
 .backup{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:var(--r);padding:12px 14px;box-shadow:var(--shadow)}
 .backup.due{background:var(--warn-bg);color:var(--warn)}
-.backup-txt{flex:1;min-width:0;font-size:.88rem;line-height:1.35}
+.backup-txt{flex:1;min-width:0;font-size:.9rem;line-height:1.35}
 .backup-txt b{display:block;font-weight:600}
 </style>
 </head>
@@ -244,12 +245,19 @@ body{padding-top:env(safe-area-inset-top,0px)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:25;background:var(--brand)}
 .top-in,main,.tabs-in,.sheet-card{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .mode.due{background:rgba(242,154,107,.3)}
-.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:.92rem}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:.9rem}
 .steps li::marker{color:var(--muted);font-weight:600}
 .file-pick{position:relative;overflow:hidden}
 .file-pick input{position:absolute;inset:0;opacity:0;cursor:pointer}
-.kv-plain{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.92rem}
+.kv-plain{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.9rem}
 .kv-plain dt{color:var(--muted)}
+.help{margin:0;font-size:.9rem;line-height:1.45;color:var(--muted)}
+.intro{margin-top:6px}
+.mono:is(input,textarea,select){font-size:1rem}
+.mono::placeholder{font-family:var(--f-body);letter-spacing:0}
+main a:not(.btn),.setup a:not(.btn),.sheet a:not(.btn){color:var(--brand-2);font-weight:600;text-underline-offset:3px}
+.btn.ghost.center{align-self:center}
+.two-col{grid-template-columns:1fr 1fr}
 a.btn{text-decoration:none;color:inherit}
 a.btn.primary{color:var(--accent-ink)}
 .gs-btns{display:flex;flex-wrap:wrap;gap:8px}
@@ -275,15 +283,15 @@ details.grp{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh
 details.grp summary{list-style:none;display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;font-weight:600}
 details.grp summary::-webkit-details-marker{display:none}
 details.grp summary span.lbl2{flex:1;min-width:0}
-details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:var(--muted)}
-.gcount{font:700 1.3rem/1 var(--f-display);font-variant-numeric:tabular-nums;min-width:2ch;text-align:right}
+details.grp summary small{display:block;font-weight:400;font-size:.82rem;color:var(--muted)}
+.gcount{font:700 1.4rem/1 var(--f-display);font-variant-numeric:tabular-nums;min-width:2ch;text-align:right}
 .grp.ok .gcount{color:var(--in)} .grp.bad .gcount{color:var(--warn)} .grp.zero .gcount{color:var(--void)}
 .grp-body{border-top:1px solid var(--line);padding:4px 14px 10px}
 .crow{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
 .crow:last-child{border-bottom:0}
 .crow-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .crow-main .mono{overflow-wrap:anywhere}
-.crow-main small{color:var(--muted);font-size:.78rem;line-height:1.3}
+.crow-main small{color:var(--muted);font-size:.82rem;line-height:1.3}
 .crow .x{border:0;background:transparent;color:var(--muted);width:32px;height:32px;border-radius:50%;flex:none}
 /* live scanner */
 .scanner{position:fixed;inset:0;z-index:70;background:#000;display:flex;flex-direction:column;color:#fff}
@@ -310,9 +318,9 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
 .scan-n{font:700 1.8rem/1 var(--f-display);font-variant-numeric:tabular-nums}
 .scan-bot{margin-top:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px}
 .scan-last{background:rgba(0,0,0,.6);border-radius:12px;padding:10px 14px;min-height:46px;display:flex;flex-direction:column;justify-content:center}
-.scan-last .mono{font-size:1.05rem;overflow-wrap:anywhere}
-.scan-last small{opacity:.8;font-size:.8rem}
-.scan-hint{font-size:.85rem;opacity:.85;text-align:center}
+.scan-last .mono{font-size:1.1rem;overflow-wrap:anywhere}
+.scan-last small{opacity:.8;font-size:.82rem}
+.scan-hint{font-size:.9rem;opacity:.85;text-align:center}
 .scanner .btn{background:rgba(255,255,255,.16);color:#fff}
 .scanner .btn.primary{background:#58C774;color:#06301A}
 </style>
@@ -331,9 +339,10 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
 <main>
   <!-- STOCK -->
   <section class="panel" id="p-stock">
+    <h2>Your stock</h2>
     <div class="summary">
       <div class="stat"><b id="st-ser" class="num">0</b><span>Serialized units</span></div>
-      <div class="stat"><b id="st-non" class="num">0</b><span>Mounts &amp; parts</span></div>
+      <div class="stat"><b id="st-non" class="num">0</b><span>Non-serialized items</span></div>
     </div>
     <div class="backup" id="backupCard" hidden>
       <div class="backup-txt"><b id="backupH">Not backed up</b><span id="backupSub"></span></div>
@@ -395,7 +404,7 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
           <button type="button" class="btn" id="dAddSerial">Add</button>
         </div>
         <select id="dItemSel" aria-label="Pick an item without a serial"></select>
-        <button type="button" class="btn ghost" id="dPhotoBtn" style="align-self:center">Camera won't open? Scan from a photo</button>
+        <button type="button" class="btn ghost center" id="dPhotoBtn">Camera won't open? Scan from a photo</button>
         <div id="jobList"></div>
       </div>
       <div class="field" id="itemBlock">
@@ -413,7 +422,7 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
         <button type="button" class="btn brand block" id="scanBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><path d="M8 8v8M11 8v8M14 8v8M17 8v8"/></svg>
           Scan Barcode</button>
-        <button type="button" class="btn ghost" id="photoScanBtn" style="align-self:center">Camera won't open? Scan from a photo</button>
+        <button type="button" class="btn ghost center" id="photoScanBtn">Camera won't open? Scan from a photo</button>
         <div class="serials" id="serialList"></div>
         <div id="serialWarn"></div>
       </div>
@@ -441,7 +450,7 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
   <section class="panel" id="p-history" hidden>
     <h2>Your history</h2>
     <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-      <input type="search" id="histQ" placeholder="Search serial, account, RMA, item or note" autocomplete="off"></div>
+      <input type="search" id="histQ" placeholder="Search serials, accounts or items" autocomplete="off"></div>
     <div class="chips" id="histChips" role="group" aria-label="Filter">
       <button data-f="all" aria-pressed="true">All</button>
       <button data-f="receive">Received</button>
@@ -456,7 +465,7 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
   <!-- COUNT -->
   <section class="panel" id="p-count" hidden>
     <div><h2>Inventory count</h2>
-      <p class="muted" style="margin:6px 0 0" id="countIntro">Scan every serialized unit in your truck and storage. Then compare against your records or the inventory team's count list.</p></div>
+      <p class="help intro" id="countIntro">Scan every serialized unit in your truck and storage. Then compare against your records or the inventory team's count list.</p></div>
     <div id="countEmpty" class="empty"><h3>No count in progress</h3><p>Counting doesn't change your stock. It builds a separate list you can compare and save to Excel.</p><button class="btn primary" type="button" id="countStart">Start a Count</button></div>
     <div id="countActive" class="panel" hidden>
       <div class="count-stats">
@@ -464,15 +473,15 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
         <div class="stat"><b class="num" id="cs-ok">0</b><span id="cs-ok-l">Matched</span></div>
         <div class="stat"><b class="num" id="cs-miss">0</b><span id="cs-miss-l">Not scanned</span></div>
       </div>
-      <button class="btn primary block" type="button" id="liveScanBtn">
+      <button class="btn brand block" type="button" id="liveScanBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3"/><path d="M8 8v8M11 8v8M14 8v8M17 8v8"/></svg>
-        Scan Continuously</button>
+        Scan Items</button>
       <div class="row">
-        <input type="text" id="countIn" placeholder="Type a serial" autocomplete="off" autocapitalize="characters" spellcheck="false" class="mono">
+        <input type="text" id="countIn" placeholder="Or type a serial" autocomplete="off" autocapitalize="characters" spellcheck="false" class="mono">
         <button type="button" class="btn" id="countAddBtn">Add</button>
-        <button type="button" class="btn" id="countPhotoBtn" aria-label="Scan from a photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       </div>
-      <div class="seg" id="cmpSeg" role="group" aria-label="Compare against" style="grid-template-columns:1fr 1fr">
+      <button type="button" class="btn ghost center" id="countPhotoBtn">Camera won't open? Scan from a photo</button>
+      <div class="seg two-col" id="cmpSeg" role="group" aria-label="Compare against">
         <button class="t-count" data-cmp="records" aria-pressed="true">My records</button>
         <button class="t-count" data-cmp="list" aria-pressed="false">Inventory list</button>
       </div>
@@ -495,7 +504,7 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
         <input type="text" id="nameIn" autocomplete="name" placeholder="First and last name"></div>
       <div class="field"><label for="dealerIn">Dealership</label>
         <input type="text" id="dealerIn" autocomplete="organization" placeholder="Dealership name"></div>
-      <p class="muted" style="margin:0;font-size:.85rem">Your name and dealership go on your Google Sheet and Excel files.</p>
+      <p class="help">Your name and dealership go on your Google Sheet and Excel files.</p>
     </div>
     <div class="card">
       <h3>Appearance</h3>
@@ -507,12 +516,12 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
     </div>
     <div class="card" id="gsCard">
       <div class="cmp-head"><h3>Google Sheets</h3><span class="pill t-count" id="gsPill">Off</span></div>
-      <p class="muted" id="gsText" style="margin:0;font-size:.9rem"></p>
+      <p class="help" id="gsText"></p>
       <div class="gs-btns" id="gsBtns"></div>
     </div>
     <div class="card">
       <h3>Export to Excel</h3>
-      <p class="muted" style="margin:0;font-size:.9rem">Save a copy of your history and what's on hand for your own records.</p>
+      <p class="help">Save a copy of your history and what's on hand for your own records.</p>
       <button class="btn block" type="button" data-backup>Export to Excel</button>
     </div>
     <div class="note info" id="homeTip"></div>
@@ -581,11 +590,11 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
   <div class="setup-body" id="setupGoogle" hidden>
     <span class="eyebrow">Step 2 of 2</span>
     <h2>Connect Google Sheets</h2>
-    <p style="margin:0">Stock Tracker backs up every entry to a Google Sheet in your own Google Drive, so nothing is lost if your phone is. It can only open the sheet it creates, nothing else in your Drive.</p>
-    <p class="muted" style="margin:0;font-size:.9rem">Setting up a new phone? Connect the same Google account and your entries come back.</p>
+    <p class="help" style="color:var(--ink);font-size:1rem">Stock Tracker backs up every entry to a Google Sheet in your own Google Drive, so nothing is lost if your phone is. It can only open the sheet it creates, nothing else in your Drive.</p>
+    <p class="help">Setting up a new phone? Connect the same Google account and your entries come back.</p>
     <div id="setupGErr"></div>
     <button class="btn primary block" type="button" id="gsConnectSetup">Connect Google Sheets</button>
-    <a class="muted" href="privacy.html" target="_blank" rel="noopener" style="align-self:center;font-size:.88rem">Privacy policy</a>
+    <a class="help" href="privacy.html" target="_blank" rel="noopener" style="align-self:center">Privacy policy</a>
   </div>
 </div>
 
@@ -1174,7 +1183,7 @@ async function saveMulti(){
   F.lines.forEach(l=>{ const s=SKU[l.sku]; const q=l.serial?1:l.qty; units+=q;
     if(!Store.add(Object.assign({},base,{sku:s.id, skuName:s.name, serial:l.serial||"", serialKey:keyOf(l.serial||""), qty:q}))) ok=false; });
   if(ok){
-    toast(`${TYPES[t].label} ${units} item${units===1?"":"s"}`);
+    if(t!=="transfer") toast(`${TYPES[t].label} ${units} item${units===1?"":"s"}`);
     F.lines=[]; $("noteIn").value=""; $("rmaIn").value=""; $("toIn").value="";
     $("fromSel").value=""; $("fromDealer").value=""; $("fromIn").value=""; syncFrom(); $("recycleOk").checked=false;
   }
@@ -1199,15 +1208,12 @@ function transferMail(jobId){
 Please move the following equipment from ${fromDealer} to ${to}.
 
 From dealer: ${fromDealer}
-Sent by: ${ME.name}
 To dealer: ${to}
 Date: ${when}
 Items (${units}):
 ${lines.join("\n")}
 
-Thank you,
-${ME.name}
-${fromDealer}`;
+Thank you,`;
   return {subject, body};
 }
 function openTransferMail(jobId){
@@ -1354,8 +1360,8 @@ function openDetail(id){
   $("delStart").addEventListener("click",()=>{
     const what = e.serial ? `serial ${e.serial}` : `${e.qty} × ${l.name}`;
     $("voidArea").innerHTML=`<div class="card" role="alertdialog" aria-labelledby="delQ"><b id="delQ">Delete this entry for good?</b>
-      <p style="margin:0;font-size:.92rem">${esc((TYPES[e.type]||{label:e.type}).label)} · ${esc(what)} · ${esc(fmtFull(e.ts))}</p>
-      <p class="muted" style="margin:0;font-size:.85rem">It's removed from your stock and history and won't be in future backups. This can't be undone. If you might need proof of it later, void it instead.</p>
+      <p class="help" style="color:var(--ink)">${esc((TYPES[e.type]||{label:e.type}).label)} · ${esc(what)} · ${esc(fmtFull(e.ts))}</p>
+      <p class="help">It's removed from your stock and history and won't be in future backups. This can't be undone. If you might need proof of it later, void it instead.</p>
       <div class="row"><button class="btn block" type="button" data-close="detailSheet">Cancel</button><button class="btn danger block" type="button" id="delGo">Delete Permanently</button></div></div>`;
     $("delGo").addEventListener("click",()=>{
       if(Store.deleteEvent(e.id)){ $("detailSheet").hidden=true; toast("Entry deleted"); renderAll(); }
@@ -1365,7 +1371,7 @@ function openDetail(id){
   if(vs) vs.addEventListener("click",()=>{
     $("voidArea").innerHTML=`<div class="card"><div class="field"><label for="voidReason">Why are you voiding it?</label>
       <input type="text" id="voidReason" placeholder="Scanned wrong unit, duplicate…"></div>
-      <p class="muted" style="margin:0;font-size:.85rem">The entry stays in history, marked as voided, and no longer counts toward your stock.</p>
+      <p class="help">The entry stays in history, marked as voided, and no longer counts toward your stock.</p>
       <div class="row"><button class="btn block" type="button" data-close="detailSheet">Keep It</button><button class="btn danger block" type="button" id="voidGo">Void Entry</button></div></div>`;
     $("voidGo").addEventListener("click",()=>{
       if(Store.voidEvent(e.id,$("voidReason").value.trim())){ $("detailSheet").hidden=true; toast("Entry voided"); renderAll(); }
@@ -1651,7 +1657,7 @@ function renderCount(){
     $("listBox").innerHTML = L
       ? `<div class="card"><div class="cmp-head"><h3>${esc(L.file)}</h3><button class="btn sm" type="button" data-pick-list>Replace</button></div>
          <div class="field"><label for="listCol">Serial number column</label><select id="listCol">${L.headers.map((h,i)=>`<option value="${i}"${i===L.col?" selected":""}>${esc(h)}</option>`).join("")}</select></div>
-         <span class="muted" style="font-size:.85rem">${listKeys().size} serials on this list.</span></div>`
+         <span class="help">${listKeys().size} serials on this list.</span></div>`
       : `<div class="empty"><h3>Load the inventory team's list</h3><p>Pick the Excel or CSV count list they sent you. Your scans are compared against it line by line.</p><button class="btn primary" type="button" data-pick-list>Choose List File</button></div>`;
     const sel=$("listCol"); if(sel) sel.addEventListener("change",()=>{ COUNT.list.col=Number(sel.value); saveCount(); renderCount(); });
   } else $("listBox").innerHTML="";
@@ -1671,7 +1677,7 @@ function renderCount(){
          + groupHTML("bad","Scanned, not on their list","You have these, but they aren't assigned to you",extra,r=>`Your records: ${r.note}`,true)
          + groupHTML("ok","Matched","Scanned and on their list",ok,r=>`Scanned ${fmtTime(r.scannedAt)}`,true);
   } else { $("cs-ok").textContent="–"; $("cs-miss").textContent="–"; }
-  if(!COUNT.items.length && cmpMode==="records") html=`<div class="note info">Tap Scan Continuously and work through your truck and storage. Each new serial beeps once.</div>`+html;
+  if(!COUNT.items.length && cmpMode==="records") html=`<div class="note info">Tap Scan Items and work through your truck and storage, accepting each serial.</div>`+html;
   $("cmpList").innerHTML=html;
 }
 document.addEventListener("click",e=>{
@@ -1681,7 +1687,7 @@ document.addEventListener("click",e=>{
 
 /* end / export */
 $("countEnd").addEventListener("click",()=>{
-  $("countEndConfirm").innerHTML=`<div class="card"><b>End this count?</b><p class="muted" style="margin:0;font-size:.9rem">The ${COUNT.items.length} scanned serials are cleared from this phone. Save the count to Excel first if you need it. Your stock and history aren't affected.</p>
+  $("countEndConfirm").innerHTML=`<div class="card"><b>End this count?</b><p class="help">The ${COUNT.items.length} scanned serials are cleared from this phone. Save the count to Excel first if you need it. Your stock and history aren't affected.</p>
     <div class="row"><button class="btn block" type="button" id="endKeep">Keep Counting</button><button class="btn danger block" type="button" id="endGo">End Count</button></div></div>`;
   $("endKeep").onclick=()=>$("countEndConfirm").innerHTML="";
   $("endGo").onclick=()=>{ COUNT=null; try{localStorage.removeItem(CK)}catch(e){} $("countEndConfirm").innerHTML=""; cmpMode="records"; renderCount(); toast("Count ended"); };
