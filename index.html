@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#002B2B">
 <link rel="manifest" href="manifest.json">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -228,6 +229,10 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .file-pick input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .kv-plain{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.92rem}
 .kv-plain dt{color:var(--muted)}
+a.btn{text-decoration:none;color:inherit}
+a.btn.primary{color:var(--accent-ink)}
+.gs-btns{display:flex;flex-wrap:wrap;gap:8px}
+.gs-btns .btn{flex:1 1 auto}
 .ser-link{border:0;background:none;padding:0;text-align:left;color:inherit;flex:1;min-width:0;overflow-wrap:anywhere;text-decoration:underline dotted;text-underline-offset:3px;cursor:pointer}
 .kv-plain dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
 .tabs-in{--n:5}
@@ -319,6 +324,10 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
     <div class="backup" id="backupCard" hidden>
       <div class="backup-txt"><b id="backupH">Back up to OneDrive</b><span id="backupSub">Save your history as an Excel file.</span></div>
       <button class="btn sm brand" type="button" data-backup>Save to Excel</button>
+    </div>
+    <div class="backup" id="gsBanner" hidden>
+      <div class="backup-txt"><b id="gsBannerH">Not in Google Sheets yet</b><span id="gsBannerSub"></span></div>
+      <button class="btn sm brand" type="button" data-gssync>Sync Now</button>
     </div>
     <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input type="search" id="stockQ" placeholder="Find a serial or item in your stock" autocomplete="off"></div>
@@ -450,6 +459,11 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
       <div class="field"><label for="dealerIn">Dealership</label>
         <input type="text" id="dealerIn" autocomplete="organization" placeholder="Dealership name"></div>
       <p class="muted" style="margin:0;font-size:.85rem">Your name and dealership go on your backup and count files.</p>
+    </div>
+    <div class="card" id="gsCard">
+      <div class="cmp-head"><h3>Google Sheets</h3><span class="pill t-count" id="gsPill">Off</span></div>
+      <p class="muted" id="gsText" style="margin:0;font-size:.9rem"></p>
+      <div class="gs-btns" id="gsBtns"></div>
     </div>
     <div class="card">
       <h3>Back up to OneDrive</h3>
@@ -627,6 +641,7 @@ const Store = {
   events: lsGet(K.events, []),
   persist(){
     if(!lsSet(K.events, this.events)){ toast("Couldn't save on this phone. Back up to Excel now so nothing is lost."); return false; }
+    onDataChanged();
     return true;
   },
   add(ev){ ev.id=newId(); this.events.push(ev); this.events.sort((a,b)=>b.ts-a.ts); return this.persist(); },
@@ -841,6 +856,7 @@ $("locRetry").addEventListener("click",()=>refreshLocation(true));
 let saving=false;
 $("logForm").addEventListener("submit", async e=>{
   e.preventDefault(); if(saving) return;
+  gsGestureRefresh();
   const s=SKU[$("skuSel").value]; const err=m=>{ $("formErr").innerHTML=`<div class="note warn">${esc(m)}</div>`; };
   $("formErr").innerHTML="";
   if(!s) return err(F.serials.length ? "Stock Tracker doesn't recognize this serial yet. Choose the item once and it will next time." : "Choose an item first.");
@@ -1089,13 +1105,17 @@ async function saveFile(file){
   return "downloaded";
 }
 function fileName(){ const who=ME.name.replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,""); return `Stock-Tracker-${who||"Backup"}.xlsx`; }
+function onHandRows(){
+  const out=[["Item","Serial / quantity","Received"]];
+  SKUS.forEach(sk=>{ if(sk.serial) STOCK.bySku[sk.id].forEach(i=>out.push([sk.name,i.serial,new Date(i.ts).toLocaleDateString()])); else if(STOCK.qty[sk.id]) out.push([sk.name,"Qty "+STOCK.qty[sk.id],""]); });
+  return out;
+}
 function buildWorkbook(){
   const aoa=[COLS.map(c=>c[0]), ...Store.events.map(e=>COLS.map(c=>c[1](e)))];
   const ws=XLSX.utils.aoa_to_sheet(aoa);
   ws["!cols"]=[18,11,34,22,6,16,14,18,18,30,11,11,8,7,20,16,14,24,24].map(w=>({wch:w}));
   ws["!autofilter"]={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:Math.max(1,aoa.length-1),c:COLS.length-1}})};
-  const onHand=[["Item","Serial / quantity","Received"]];
-  SKUS.forEach(sk=>{ if(sk.serial) STOCK.bySku[sk.id].forEach(i=>onHand.push([sk.name,i.serial,new Date(i.ts).toLocaleDateString()])); else if(STOCK.qty[sk.id]) onHand.push([sk.name,"Qty "+STOCK.qty[sk.id],""]); });
+  const onHand=onHandRows();
   const ws2=XLSX.utils.aoa_to_sheet(onHand); ws2["!cols"]=[{wch:34},{wch:22},{wch:14}];
   const info=XLSX.utils.aoa_to_sheet([["Technician",ME.name],["Dealership",ME.dealer],["Saved",new Date().toLocaleString()],["Entries",Store.events.length],[],["Restore this file from the Backup tab in Stock Tracker. Don't edit the Entry ID, Item code or Timestamp columns."]]);
   info["!cols"]=[{wch:14},{wch:40}];
@@ -1132,6 +1152,7 @@ function paintBackup(){
   $("mode").className = "mode" + (n && due ? " due" : "");
   $("bkCount").textContent=n; $("bkNew").textContent=newSince;
   $("bkLast").textContent = last ? fmtFull(last) : "Never";
+  paintGoogle();
 }
 
 /* ---------- restore ---------- */
@@ -1141,6 +1162,9 @@ function parseBackup(buf){
   const ws=wb.Sheets["History"]; if(!ws) throw new Error("This doesn't look like a Stock Tracker backup. It has no History sheet.");
   const rows=XLSX.utils.sheet_to_json(ws,{defval:"",raw:false});
   if(rows.length && !("Entry ID" in rows[0] && "Timestamp" in rows[0])) throw new Error("This file is missing the Entry ID or Timestamp column, so it can't be restored.");
+  return rowsToEntries(rows);
+}
+function rowsToEntries(rows){
   const out=[];
   rows.forEach(r=>{
     const id=cellStr(r["Entry ID"]), ts=Date.parse(cellStr(r["Timestamp"]));
@@ -1159,6 +1183,22 @@ function parseBackup(buf){
   });
   return {entries:out, skipped:rows.length-out.length};
 }
+/* add entries that aren't on this phone yet; never re-adds anything deleted here */
+function mergeEntries(entries){
+  const byId=new Map(Store.events.map(e=>[e.id,e]));
+  let added=0, updated=0, gone=0;
+  entries.forEach(e=>{
+    if(Store.deleted.has(e.id)){ gone++; return; }
+    const have=byId.get(e.id);
+    if(!have){ Store.events.push(e); byId.set(e.id,e); added++; }
+    else if(e.voided && !have.voided){ Object.assign(have,{voided:true, voidReason:e.voidReason, voidedAt:e.voidedAt}); updated++; }
+  });
+  if(added || updated){
+    Store.events.sort((a,b)=>b.ts-a.ts);
+    if(!Store.persist()) throw new Error("This phone is out of space for Stock Tracker data.");
+  }
+  return {added, updated, gone};
+}
 $("restoreIn").addEventListener("change",async()=>{
   const f=$("restoreIn").files && $("restoreIn").files[0]; const msg=$("restoreMsg");
   if(!f) return;
@@ -1166,16 +1206,7 @@ $("restoreIn").addEventListener("change",async()=>{
   msg.innerHTML=`<div class="loc"><span class="spinner"></span><span>Reading ${esc(f.name)}…</span></div>`;
   try{
     const {entries, skipped}=parseBackup(await f.arrayBuffer());
-    const byId=new Map(Store.events.map(e=>[e.id,e]));
-    let added=0, updated=0, gone=0;
-    entries.forEach(e=>{
-      if(Store.deleted.has(e.id)){ gone++; return; }
-      const have=byId.get(e.id);
-      if(!have){ Store.events.push(e); added++; }
-      else if(e.voided && !have.voided){ Object.assign(have,{voided:true, voidReason:e.voidReason, voidedAt:e.voidedAt}); updated++; }
-    });
-    Store.events.sort((a,b)=>b.ts-a.ts);
-    if(!Store.persist()) throw new Error("This phone is out of space for Stock Tracker data.");
+    const {added, updated, gone}=mergeEntries(entries);
     msg.innerHTML=`<div class="note info">Restored <b>${added}</b> entr${added===1?"y":"ies"}${updated?`, updated ${updated} voided`:""}. ${entries.length-added-gone} ${entries.length-added-gone===1?"was":"were"} already on this phone.${gone?` ${gone} you deleted ${gone===1?"was":"were"} left out.`:""}${skipped?` ${skipped} row${skipped===1?"":"s"} couldn't be read and ${skipped===1?"was":"were"} skipped.`:""}</div>`;
     if(added && !lsGet(K.backup,null)){ lsSet(K.backup, f.lastModified||Date.now()); lsSet(K.backupIds, Store.events.length); }
     toast(added?`Restored ${added} entries`:"Already up to date");
@@ -1517,6 +1548,172 @@ function stopLiveScan(){
 }
 document.addEventListener("visibilitychange",()=>{ if(document.hidden) stopLiveScan(); });
 
+
+/* ---------- Google Sheets sync (optional) ----------
+   Each tech connects their own Google account. Entries always save on the phone first;
+   the sheet is a live copy kept up to date in the background.
+   Setup: paste the OAuth client ID from Google Cloud between the quotes below. */
+const GOOGLE_CLIENT_ID = "";
+const GS_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email";
+const GS_KEY = "techstock.gs";
+const GS = Object.assign({connected:false, email:"", sheetId:"", token:"", exp:0, rev:0, synced:0, lastSync:0}, lsGet(GS_KEY, {}));
+const IN_CLAUDE = !!(window.claude && typeof window.claude.use==="function");
+const SHEETS = "https://sheets.googleapis.com/v4/spreadsheets";
+let gsClient=null, gsBusy=false, gsTimer=null, gsErr="", gsAuthWait=null, gsMerging=false, gsLastPrompt=0;
+const gsSave=()=>lsSet(GS_KEY, GS);
+const gsAvailable=()=>!!GOOGLE_CLIENT_ID && !IN_CLAUDE;
+const gsTokenOk=()=>!!GS.token && Date.now() < GS.exp-60000;
+const gsPending=()=>GS.rev>GS.synced;
+
+function onDataChanged(){
+  if(typeof GS==="undefined" || !GS.connected || gsMerging) return;
+  GS.rev++; gsSave();
+  clearTimeout(gsTimer); gsTimer=setTimeout(()=>gsSync(), 1500);
+}
+function gsInitClient(){
+  if(gsClient) return true;
+  if(!(window.google && google.accounts && google.accounts.oauth2)) return false;
+  gsClient=google.accounts.oauth2.initTokenClient({
+    client_id:GOOGLE_CLIENT_ID, scope:GS_SCOPES,
+    callback:r=>{ const w=gsAuthWait; gsAuthWait=null;
+      if(r && r.access_token){ GS.token=r.access_token; GS.exp=Date.now()+(Number(r.expires_in)||3600)*1000; gsSave(); w&&w.res(); }
+      else w&&w.rej(new Error((r&&r.error)||"denied")); },
+    error_callback:e=>{ const w=gsAuthWait; gsAuthWait=null; w&&w.rej(new Error((e&&e.type)||"popup_closed")); }
+  });
+  return true;
+}
+/* must be started from a tap, or the browser blocks Google's sign-in window */
+function gsAuth(prompt){
+  if(!gsInitClient()) return Promise.reject(new Error("Google sign-in didn't load. Check your connection and reload."));
+  gsLastPrompt=Date.now();
+  return new Promise((res,rej)=>{ gsAuthWait={res,rej};
+    const o={prompt}; if(GS.email) o.hint=GS.email;
+    gsClient.requestAccessToken(o); });
+}
+function gsGestureRefresh(){
+  if(gsAvailable() && GS.connected && !gsTokenOk() && navigator.onLine && !gsAuthWait && Date.now()-gsLastPrompt>10*60000)
+    gsAuth("").then(()=>{ gsErr=""; gsSync(); }).catch(()=>{ gsErr="auth"; paintGoogle(); });
+}
+async function gapi(url, opts){
+  opts=opts||{};
+  const r=await fetch(url, Object.assign({}, opts, {headers:Object.assign({Authorization:"Bearer "+GS.token, "Content-Type":"application/json"}, opts.headers||{})}));
+  if(r.status===401){ GS.token=""; GS.exp=0; gsSave(); const e=new Error("auth"); e.auth=true; throw e; }
+  if(r.status===404){ const e=new Error("Sheet not found"); e.notFound=true; throw e; }
+  if(!r.ok){ let m=""; try{ m=(await r.json()).error.message; }catch(e){} throw new Error(m||("Google returned error "+r.status)); }
+  return r.status===204 ? null : r.json();
+}
+async function gsFindOrCreate(){
+  if(GS.sheetId){
+    try{ const f=await gapi(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(GS.sheetId)}?fields=id,trashed`); if(!f.trashed) return; }
+    catch(e){ if(!e.notFound) throw e; }
+    GS.sheetId=""; gsSave();
+  }
+  // a sheet this app made earlier (another phone, or before the app was reinstalled)
+  const q=encodeURIComponent("mimeType='application/vnd.google-apps.spreadsheet' and appProperties has { key='stockTracker' and value='1' } and trashed=false");
+  const found=await gapi(`https://www.googleapis.com/drive/v3/files?q=${q}&orderBy=modifiedTime%20desc&pageSize=5&fields=files(id,name)`);
+  if(found.files && found.files.length){ GS.sheetId=found.files[0].id; gsSave(); return; }
+  const title=`Stock Tracker - ${ME.name}${ME.dealer?" ("+ME.dealer+")":""}`;
+  const sh=await gapi(SHEETS,{method:"POST", body:JSON.stringify({properties:{title},
+    sheets:[{properties:{title:"History",gridProperties:{frozenRowCount:1}}},{properties:{title:"On hand",gridProperties:{frozenRowCount:1}}}]})});
+  GS.sheetId=sh.spreadsheetId; gsSave();
+  await gapi(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(GS.sheetId)}`,{method:"PATCH", body:JSON.stringify({appProperties:{stockTracker:"1"}})});
+}
+async function gsSync(){
+  if(!gsAvailable() || !GS.connected || gsBusy) return;
+  if(!navigator.onLine){ gsErr="offline"; paintGoogle(); return; }
+  if(!gsTokenOk()){ gsErr="auth"; paintGoogle(); return; }
+  gsBusy=true; gsErr=""; paintGoogle();
+  const startRev=GS.rev;
+  try{
+    await gsFindOrCreate();
+    // 1. pull: bring back anything in the sheet that isn't on this phone (new phone, cleared data)
+    const got=await gapi(`${SHEETS}/${GS.sheetId}/values/${encodeURIComponent("History!A1:Z")}`);
+    const vals=(got&&got.values)||[];
+    if(vals.length>1 && vals[0].includes("Entry ID")){
+      const head=vals[0];
+      const rows=vals.slice(1).map(r=>Object.fromEntries(head.map((h,i)=>[h, r[i]==null?"":String(r[i])])));
+      gsMerging=true;
+      try{ const m=mergeEntries(rowsToEntries(rows).entries); if(m.added){ toast(`Brought back ${m.added} entr${m.added===1?"y":"ies"} from Google Sheets`); renderAll(); } }
+      finally{ gsMerging=false; }
+    }
+    // 2. push: write the full history and what's on hand
+    const hist=[COLS.map(c=>c[0]), ...Store.events.map(e=>COLS.map(c=>{ const v=c[1](e); return v==null?"":v; }))];
+    const onHand=onHandRows();
+    await gapi(`${SHEETS}/${GS.sheetId}/values:batchUpdate`,{method:"POST", body:JSON.stringify({valueInputOption:"RAW",
+      data:[{range:"History!A1", values:hist},{range:"'On hand'!A1", values:onHand}]})});
+    await gapi(`${SHEETS}/${GS.sheetId}/values:batchClear`,{method:"POST", body:JSON.stringify({ranges:[`History!A${hist.length+1}:Z`,`'On hand'!A${onHand.length+1}:Z`]})});
+    GS.synced=Math.max(GS.synced,startRev); GS.lastSync=Date.now(); gsSave();
+  }catch(e){
+    gsErr = e.auth ? "auth" : (!navigator.onLine ? "offline" : (e.message||"unknown problem"));
+  }finally{
+    gsBusy=false; paintGoogle();
+    if(!gsErr && gsPending()){ clearTimeout(gsTimer); gsTimer=setTimeout(()=>gsSync(), 1500); }
+  }
+}
+function gsStatus(){
+  if(gsBusy) return {pill:"Syncing", text:"Syncing…", warn:false};
+  if(gsErr==="auth") return {pill:"Sign in", text:"Google sign-in expired. Tap Sync Now to sign back in.", warn:true};
+  if(gsErr==="offline") return {pill:gsPending()?"Waiting":"Synced", text:"No signal. Changes sync when you're back online.", warn:gsPending()};
+  if(gsErr) return {pill:"Problem", text:"Couldn't sync: "+gsErr, warn:true};
+  if(gsPending()) return {pill:"Waiting", text:"Changes waiting to sync.", warn:true};
+  return {pill:"Synced", text:GS.lastSync ? "Up to date. Last synced "+fmtFull(GS.lastSync)+"." : "Up to date.", warn:false};
+}
+function paintGoogle(){
+  if(typeof GS==="undefined" || !$("gsCard")) return;
+  const pill=$("gsPill"), txt=$("gsText"), btns=$("gsBtns"), banner=$("gsBanner");
+  if(IN_CLAUDE || !GOOGLE_CLIENT_ID){
+    pill.textContent = IN_CLAUDE ? "Website only" : "Not set up";
+    txt.textContent = IN_CLAUDE ? "Google Sheets sync works on the Stock Tracker website, not inside Claude." : "Google Sheets sync isn't turned on for this site yet.";
+    btns.innerHTML=""; banner.hidden=true; return;
+  }
+  if(!GS.connected){
+    pill.textContent="Off";
+    txt.textContent="Save every entry to a Google Sheet in your own Google Drive, automatically. Stock Tracker can only open the sheet it creates, nothing else in your Drive.";
+    btns.innerHTML=`<button class="btn primary" type="button" id="gsConnect">Connect Google Sheets</button>`;
+    banner.hidden=true; return;
+  }
+  const st=gsStatus();
+  pill.textContent=st.pill;
+  txt.innerHTML=`${GS.email?`Connected as <b>${esc(GS.email)}</b><br>`:""}${esc(st.text)}`;
+  btns.innerHTML=`<button class="btn primary" type="button" data-gssync${gsBusy?" disabled":""}>Sync Now</button>`+
+    (GS.sheetId?`<a class="btn" href="https://docs.google.com/spreadsheets/d/${encodeURIComponent(GS.sheetId)}/edit" target="_blank" rel="noopener">Open Sheet</a>`:"")+
+    `<button class="btn ghost" type="button" id="gsDisconnect">Disconnect</button>`;
+  $("mode").textContent = st.pill; $("mode").className = "mode"+(st.warn?" due":"");
+  $("backupCard").hidden=true;
+  banner.hidden=!st.warn; banner.classList.toggle("due", st.warn);
+  $("gsBannerH").textContent = gsErr==="auth" ? "Google sign-in expired" : "Not in Google Sheets yet";
+  $("gsBannerSub").textContent = st.text;
+}
+async function gsSyncNow(){
+  if(!gsAvailable() || !GS.connected) return;
+  if(!gsTokenOk()){
+    try{ await gsAuth(""); }
+    catch(e){ gsErr="auth"; paintGoogle(); toast("Google sign-in didn't finish. Try again."); return; }
+  }
+  gsErr=""; await gsSync();
+  if(!gsErr) toast("Google Sheet is up to date");
+}
+document.addEventListener("click", async e=>{
+  if(e.target.closest("[data-gssync]")){ gsSyncNow(); return; }
+  if(e.target.closest("#gsConnect")){
+    try{ await gsAuth("consent"); }
+    catch(err){ toast("Google sign-in didn't finish. Try again."); return; }
+    GS.connected=true; GS.rev++; gsErr=""; gsSave();
+    try{ const u=await gapi("https://www.googleapis.com/oauth2/v3/userinfo"); GS.email=u.email||""; gsSave(); }catch(err){}
+    paintGoogle(); await gsSync();
+    if(!gsErr) toast("Connected. Your entries now save to Google Sheets.");
+    return;
+  }
+  if(e.target.closest("#gsDisconnect")){
+    try{ if(GS.token && window.google && google.accounts && google.accounts.oauth2) google.accounts.oauth2.revoke(GS.token, ()=>{}); }catch(err){}
+    Object.assign(GS,{connected:false, token:"", exp:0}); gsErr=""; gsSave();
+    paintBackup(); paintGoogle(); toast("Disconnected. Your Google Sheet stays in your Drive.");
+  }
+});
+window.addEventListener("online", ()=>{ if(GS.connected && gsTokenOk() && (gsPending() || gsErr==="offline")){ gsErr=""; gsSync(); } else paintGoogle(); });
+window.addEventListener("offline", ()=>{ if(GS.connected){ gsErr="offline"; paintGoogle(); } });
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden && GS.connected && gsTokenOk() && gsPending()) gsSync(); });
+
 /* ---------- home screen tip ---------- */
 const standalone = window.navigator.standalone===true || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
 $("homeTip").innerHTML = HELP.home;
@@ -1532,6 +1729,7 @@ if("serviceWorker" in navigator && location.protocol==="https:"){
 /* ---------- boot ---------- */
 function renderAll(){ STOCK=computeStock(); renderStock(); renderHistory(); syncForm(); paintBackup(); renderCount(); }
 paintHeader(); showSetup(); paintLoc(); setType("receive"); renderAll();
+if(GS.connected && gsAvailable()){ if(gsTokenOk() && gsPending()) gsSync(); else if(!gsTokenOk()){ gsErr="auth"; paintGoogle(); } }
 try{ const t=sessionStorage.getItem("techstock.tab"); if(t && $("p-"+t)) setTab(t); }catch(e){}
 })();
 </script>
