@@ -212,7 +212,10 @@ dl.kv a{color:var(--brand-2);font-weight:600}
 </head>
 <body>
 <style>
+[hidden]{display:none!important}
 html,body{min-height:100%}
+body{margin:0}
+img{max-width:100%}
 body{padding-top:env(safe-area-inset-top,0px)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:25;background:var(--brand)}
 .top-in,main,.tabs-in,.sheet-card{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -440,7 +443,7 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
         <dt>New since then</dt><dd id="bkNew">0</dd>
       </dl>
       <button class="btn primary block" type="button" data-backup>Save to Excel</button>
-      <ol class="steps">
+      <ol class="steps" id="bkSteps">
         <li>Tap <b>Save to Excel</b>, then <b>Save to Files</b>.</li>
         <li>Pick <b>OneDrive</b> and your backup folder.</li>
         <li>Tap <b>Replace</b> when asked, so you always have one up-to-date file.</li>
@@ -449,11 +452,12 @@ details.grp summary small{display:block;font-weight:400;font-size:.78rem;color:v
     <div class="card">
       <h3>Restore from Excel</h3>
       <p class="muted" style="margin:0;font-size:.9rem">New phone, or your records disappeared? Pick your backup file from OneDrive. Missing entries come back and nothing gets doubled up.</p>
+      <p class="muted" style="margin:0;font-size:.85rem" id="restoreHow"></p>
       <label class="btn brand block file-pick" for="restoreIn">Choose Backup File
         <input type="file" id="restoreIn" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
       <div id="restoreMsg"></div>
     </div>
-    <div class="note info" id="homeTip">Add Stock Tracker to your Home Screen: tap Share in Safari, then <b>Add to Home Screen</b>. It opens like an app and iPhone is less likely to clear its data.</div>
+    <div class="note info" id="homeTip"></div>
   </section>
 </main>
 
@@ -564,6 +568,33 @@ function dayLabel(ts){
 }
 let toastT;
 function toast(msg){ const t=$("toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true,3600); }
+/* ---------- phone type: instructions match iPhone, Android or a computer ---------- */
+const UA=navigator.userAgent||"";
+const PLAT = /iPhone|iPad|iPod/.test(UA) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1) ? "ios"
+           : /Android/i.test(UA) ? "android" : "other";
+const HELP = {
+  ios: {
+    steps:["Tap <b>Save to Excel</b>, then <b>Save to Files</b>.","Pick <b>OneDrive</b> and your backup folder.","Tap <b>Replace</b> when asked, so you always have one up-to-date file."],
+    home:"Add Stock Tracker to your Home Screen: tap the <b>Share</b> button in Safari, then <b>Add to Home Screen</b>. It opens like an app and iPhone is less likely to clear its data.",
+    restore:"Tap Choose Backup File, then <b>Browse</b> › <b>OneDrive</b> and pick your file.",
+    loc:"Location is off. Turn it on in Settings › Privacy & Security › Location Services › Safari Websites.",
+    cam:"Camera is blocked. In Safari tap aA › Website Settings › Camera › Allow, then try again."
+  },
+  android: {
+    steps:["Tap <b>Save to Excel</b>, then pick <b>OneDrive</b> from the share menu.","Choose your backup folder and tap <b>Upload</b>.","If OneDrive asks, choose <b>Replace</b>, so you always have one up-to-date file."],
+    home:"Add Stock Tracker to your home screen: tap <b>⋮</b> in Chrome, then <b>Add to Home screen</b> or <b>Install app</b>. It opens like an app and keeps your data more reliably.",
+    restore:"Tap Choose Backup File, open the menu, pick <b>OneDrive</b> and select your file.",
+    loc:"Location is off. In Chrome, tap the icon beside the web address › Permissions › Location › Allow.",
+    cam:"Camera is blocked. In Chrome, tap the icon beside the web address › Permissions › Camera › Allow."
+  },
+  other: {
+    steps:["Click <b>Save to Excel</b>. The file goes to your Downloads folder.","Move it into your OneDrive backup folder.","Replace the old file, so you always have one up-to-date copy."],
+    home:"",
+    restore:"Click Choose Backup File and pick your file from your OneDrive folder.",
+    loc:"Location is off. Allow location for this site in your browser settings.",
+    cam:"Camera is blocked. Allow the camera for this site in your browser settings."
+  }
+}[PLAT];
 const newId=()=>"e"+Date.now().toString(36)+Math.random().toString(36).slice(2,10);
 
 /* ---------- storage: this phone only ---------- */
@@ -767,7 +798,7 @@ function paintLoc(){
   $("locTxt").textContent = LOC.status==="ok" ? `GPS captured (±${LOC.acc} m)` :
     LOC.status==="pending" ? "Getting GPS location…" :
     LOC.status==="none" ? "GPS is captured when you save" :
-    LOC.status==="denied" ? "Location is off for this site. Turn it on in Settings › Safari › Location." :
+    LOC.status==="denied" ? HELP.loc :
     "Couldn't get GPS. Entries still save without it.";
 }
 async function refreshLocation(force){
@@ -1275,7 +1306,7 @@ async function startLiveScan(){
   try{ LIVE.audio = LIVE.audio || new (window.AudioContext||window.webkitAudioContext)(); LIVE.audio.resume(); }catch(e){}
   try{
     LIVE.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}, width:{ideal:1920}, height:{ideal:1080}}, audio:false});
-  }catch(e){ toast(e&&e.name==="NotAllowedError" ? "Camera is blocked. Allow it in Settings › Safari › Camera." : "Couldn't start the camera."); return; }
+  }catch(e){ toast(e&&e.name==="NotAllowedError" ? HELP.cam : "Couldn't start the camera."); return; }
   const v=$("liveVideo"); v.srcObject=LIVE.stream; $("liveScanner").hidden=false;
   try{ await v.play(); }catch(e){}
   $("liveN").textContent=COUNT.items.length; $("liveUndo").disabled=!COUNT.items.length;
@@ -1318,7 +1349,10 @@ document.addEventListener("visibilitychange",()=>{ if(document.hidden) stopLiveS
 
 /* ---------- home screen tip ---------- */
 const standalone = window.navigator.standalone===true || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
-$("homeTip").hidden = standalone;
+$("homeTip").innerHTML = HELP.home;
+$("homeTip").hidden = standalone || !HELP.home;
+$("bkSteps").innerHTML = HELP.steps.map(t=>`<li>${t}</li>`).join("");
+$("restoreHow").innerHTML = HELP.restore;
 
 /* ---------- offline support ---------- */
 if("serviceWorker" in navigator && location.protocol==="https:"){
